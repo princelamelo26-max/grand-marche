@@ -1,0 +1,1730 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#15803D">
+<title>Grand Marché — Marketplace congolaise</title>
+<link rel="icon" href="data:,">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="toast-container"></div>
+<div id="global-loading"><div class="spinner"></div><div id="global-loading-msg">Chargement...</div></div>
+
+<div class="app-container" id="app-container">
+
+<!-- ===== SPLASH ===== -->
+<div id="splash-screen" class="screen bg-green-900 items-center justify-center text-white p-6">
+    <div class="bg-image" style="background-image: url('https://images.unsplash.com/photo-1542838132-92c53300491e?q=80&w=1000&auto=format&fit=crop');"></div>
+    <div class="relative z-10 flex flex-col items-center justify-center h-full w-full">
+        <div class="mb-10">
+            <svg width="220" height="340" viewBox="0 0 320 500" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <linearGradient id="lgCartG" x1="30%" y1="0%" x2="70%" y2="100%"><stop offset="0%" stop-color="#FCD34D"/><stop offset="50%" stop-color="#FBBF24"/><stop offset="100%" stop-color="#F97316"/></linearGradient>
+                    <linearGradient id="lgLeafG" x1="0%" y1="100%" x2="100%" y2="0%"><stop offset="0%" stop-color="#22C55E"/><stop offset="100%" stop-color="#84CC16"/></linearGradient>
+                    <linearGradient id="lgGrandG" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#15803D"/><stop offset="100%" stop-color="#22C55E"/></linearGradient>
+                    <linearGradient id="lgMarcheG" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#FBBF24"/><stop offset="100%" stop-color="#F97316"/></linearGradient>
+                </defs>
+                <path d="M 185 55 C 220 50 250 70 252 95 C 254 120 235 145 200 148 C 180 150 170 130 175 100 C 178 78 182 62 185 55 Z" fill="url(#lgLeafG)"/>
+                <path d="M 95 145 C 85 115 72 100 62 92 C 52 84 55 70 68 68 C 82 66 90 78 98 95 C 106 112 112 128 118 145" fill="none" stroke="url(#lgCartG)" stroke-width="24" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M 105 148 L 260 140 C 278 139 286 152 282 168 L 262 222 C 258 236 246 242 232 242 L 128 242 C 114 242 106 234 104 220 Z" fill="url(#lgCartG)"/>
+                <path d="M 125 168 L 252 162 L 240 200 L 132 205 Z" fill="#FFFFFF" opacity="0.55"/>
+                <circle cx="142" cy="275" r="30" fill="url(#lgCartG)"/><circle cx="142" cy="275" r="11" fill="#FFF7ED"/>
+                <circle cx="215" cy="275" r="30" fill="url(#lgCartG)"/><circle cx="215" cy="275" r="11" fill="#FFF7ED"/>
+                <text x="160" y="385" text-anchor="middle" font-family="'Arial Black', Arial, sans-serif" font-weight="900" font-size="86" fill="url(#lgGrandG)">Grand</text>
+                <text x="160" y="460" text-anchor="middle" font-family="'Arial Black', Arial, sans-serif" font-weight="900" font-size="86" fill="url(#lgMarcheG)">Marché</text>
+            </svg>
+        </div>
+        <p class="text-center text-base text-green-100 mb-12">Achetez, vendez, soutenez<br>nos entrepreneurs !</p>
+        <button onclick="showScreen('role-screen')" class="bg-orange-500 text-white font-bold py-4 px-10 rounded-full shadow-lg text-lg">Commencer</button>
+    </div>
+</div>
+
+<!-- ===== CHOIX DU RÔLE ===== -->
+<div id="role-screen" class="screen bg-white items-center justify-center p-6 hidden">
+    <h2 class="text-2xl font-bold text-gray-800 mb-2">Grand Marché</h2>
+    <p class="text-gray-500 mb-8">Qui êtes-vous ?</p>
+    <div class="w-full space-y-4">
+        <button onclick="openClientFlow()" class="w-full border-2 border-green-500 rounded-xl p-4 flex items-center space-x-4 bg-white">
+            <div class="bg-green-100 p-3 rounded-full"><svg class="icon text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg></div>
+            <div class="text-left"><h3 class="font-bold text-gray-800">Client</h3><p class="text-sm text-gray-500">Acheter des produits</p></div>
+        </button>
+        <button onclick="openSellerFlow()" class="w-full border-2 border-orange-400 rounded-xl p-4 flex items-center space-x-4 bg-white">
+            <div class="bg-orange-100 p-3 rounded-full"><svg class="icon text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg></div>
+            <div class="text-left"><h3 class="font-bold text-gray-800">Vendeur</h3><p class="text-sm text-gray-500">Créer ma boutique</p></div>
+        </button>
+    </div>
+</div>
+
+<!-- ===== INSCRIPTION ACHETEUR ===== -->
+<div id="inscription-screen" class="screen bg-white hidden">
+    <div class="p-6 pb-3 flex items-center flex-shrink-0">
+        <button onclick="showScreen('role-screen')" class="text-gray-500 mr-4"><svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button>
+        <h2 class="text-xl font-bold text-gray-800">Créer mon compte</h2>
+    </div>
+    <div class="flex-1 overflow-y-auto px-6 pb-6">
+        <div class="space-y-4">
+            <div><label class="block text-sm font-medium text-gray-700 mb-1">Nom complet</label><input type="text" id="reg-name" placeholder="Ex : Jean Dupont" class="w-full border rounded-lg p-3"></div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Téléphone</label>
+                <div class="flex items-center border rounded-lg p-3 bg-white"><span class="text-gray-500 pr-2 border-r">+242</span><input type="tel" id="reg-phone" placeholder="06 123 45 67" class="w-full pl-3"></div>
+            </div>
+            <div><label class="block text-sm font-medium text-gray-700 mb-1">Adresse email</label><input type="email" id="reg-email" placeholder="exemple@email.com" class="w-full border rounded-lg p-3"></div>
+            <div><label class="block text-sm font-medium text-gray-700 mb-1">Mot de passe</label><input type="password" id="reg-pass" placeholder="Min 6 caractères" class="w-full border rounded-lg p-3"></div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Code parrain <span class="text-gray-400 font-normal">(optionnel)</span></label>
+                <input type="text" id="reg-referral" placeholder="Ex : GM0000" class="w-full border rounded-lg p-3 uppercase">
+            </div>
+            <button onclick="saveRegistrationAndGoHome()" class="w-full bg-green-600 text-white font-bold py-3 rounded-lg mt-4">S'inscrire</button>
+            <p class="text-center text-sm text-gray-500 mt-4">Déjà un compte ? <button onclick="showScreen('buyer-login-screen')" class="text-green-600 font-bold underline">Se connecter</button></p>
+        </div>
+    </div>
+</div>
+
+<!-- ===== CONNEXION ACHETEUR ===== -->
+<div id="buyer-login-screen" class="screen bg-white hidden">
+    <div class="p-6 pb-3 flex items-center flex-shrink-0">
+        <button onclick="showScreen('inscription-screen')" class="text-gray-500 mr-4"><svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button>
+        <h2 class="text-xl font-bold text-gray-800">Connexion</h2>
+    </div>
+    <div class="flex-1 overflow-y-auto px-6 pb-6">
+        <div class="flex justify-center mb-6"><div class="bg-green-100 p-6 rounded-full"><svg class="w-12 h-12 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg></div></div>
+        <h3 class="text-lg font-bold text-gray-800 text-center mb-2">Bon retour !</h3>
+        <p class="text-sm text-gray-500 text-center mb-6">Connectez-vous à votre compte</p>
+        <div class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Téléphone</label>
+                <div class="flex items-center border rounded-lg p-3 bg-white"><span class="text-gray-500 pr-2 border-r">+242</span><input type="tel" id="buyer-login-phone" placeholder="06..." class="w-full pl-3"></div>
+            </div>
+            <div><label class="block text-sm font-medium text-gray-700 mb-1">Mot de passe</label><input type="password" id="buyer-login-pass" class="w-full border rounded-lg p-3"></div>
+            <button onclick="buyerLogin()" class="w-full bg-green-600 text-white font-bold py-3 rounded-lg">Se connecter</button>
+            <p class="text-center text-sm text-gray-500 mt-4">Pas de compte ? <button onclick="showScreen('inscription-screen')" class="text-green-600 font-bold underline">Créer un compte</button></p>
+        </div>
+    </div>
+</div>
+
+<!-- ===== INSCRIPTION / CONNEXION VENDEUR ===== -->
+<div id="seller-register-screen" class="screen bg-white hidden">
+    <div class="bg-orange-500 text-white p-4 pt-8 flex items-center flex-shrink-0">
+        <button onclick="showScreen('role-screen')" class="mr-4"><svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button>
+        <div><h2 id="seller-header-title" class="font-bold text-lg">Devenir vendeur</h2><p id="seller-header-subtitle" class="text-xs opacity-90">Créez votre boutique</p></div>
+    </div>
+    <div class="bg-orange-500 px-4 pb-3 flex gap-2 flex-shrink-0">
+        <button id="tab-register" onclick="switchSellerMode('register')" class="flex-1 bg-white text-orange-500 font-bold py-2 rounded-lg text-sm">Créer un compte</button>
+        <button id="tab-login" onclick="switchSellerMode('login')" class="flex-1 text-white font-bold py-2 rounded-lg text-sm border border-white border-opacity-40">Se connecter</button>
+    </div>
+    <div id="step-indicators" class="bg-orange-500 px-4 pb-4 flex items-center justify-between flex-shrink-0">
+        <div class="flex flex-col items-center flex-1"><div id="step-1-circle" class="w-6 h-6 rounded-full bg-white text-orange-500 flex items-center justify-center font-bold text-xs">1</div><span id="step-1-label" class="text-[10px] text-white mt-1 font-bold">Compte</span></div>
+        <div id="step-1-line" class="h-0.5 bg-white flex-1 opacity-40"></div>
+        <div class="flex flex-col items-center flex-1"><div id="step-2-circle" class="w-6 h-6 rounded-full bg-white text-orange-500 flex items-center justify-center font-bold text-xs opacity-60">2</div><span id="step-2-label" class="text-[10px] text-white mt-1 opacity-70">Boutique</span></div>
+        <div id="step-2-line" class="h-0.5 bg-white flex-1 opacity-40"></div>
+        <div class="flex flex-col items-center flex-1"><div id="step-3-circle" class="w-6 h-6 rounded-full bg-white text-orange-500 flex items-center justify-center font-bold text-xs opacity-60">3</div><span id="step-3-label" class="text-[10px] text-white mt-1 opacity-70">Options</span></div>
+    </div>
+    <div id="seller-register-form" class="flex-1 overflow-y-auto p-4 space-y-4">
+        <div class="bg-gray-50 p-3 rounded-lg">
+            <p class="text-xs font-bold text-gray-500 uppercase mb-3">Étape 1 - Mon compte</p>
+            <div class="space-y-3">
+                <div><label class="block text-sm font-medium mb-1">Nom complet</label><input type="text" id="sel-name" oninput="updateSellerSteps()" class="w-full border rounded-lg p-3 bg-white"></div>
+                <div><label class="block text-sm font-medium mb-1">Téléphone</label><div class="flex items-center border rounded-lg p-3 bg-white"><span class="text-gray-500 pr-2 border-r">+242</span><input type="tel" id="sel-phone" oninput="updateSellerSteps()" class="w-full pl-3"></div></div>
+                <div><label class="block text-sm font-medium mb-1">Adresse email</label><input type="email" id="sel-email" oninput="updateSellerSteps()" placeholder="exemple@email.com" class="w-full border rounded-lg p-3 bg-white"></div>
+                <div><label class="block text-sm font-medium mb-1">Mot de passe</label><input type="password" id="sel-pass" oninput="updateSellerSteps()" class="w-full border rounded-lg p-3 bg-white"></div>
+            </div>
+        </div>
+        <div class="bg-gray-50 p-3 rounded-lg">
+            <p class="text-xs font-bold text-gray-500 uppercase mb-3">Étape 2 - Ma boutique</p>
+            <div class="space-y-3">
+                <div class="flex justify-center">
+                    <div class="text-center">
+                        <div class="relative inline-block">
+                            <div id="shop-logo-preview" class="bg-green-600 text-white rounded-full w-24 h-24 flex items-center justify-center font-bold text-3xl overflow-hidden border-4 border-orange-200">
+                                <img id="shop-logo-img" src="" class="w-full h-full object-cover hidden"><span id="shop-logo-initials">?</span>
+                            </div>
+                            <input type="file" id="shop-logo-input" accept="image/*" class="hidden" onchange="handleLogoUpload(this)">
+                            <button type="button" onclick="document.getElementById('shop-logo-input').click()" class="absolute -bottom-1 -right-1 bg-orange-500 text-white rounded-full p-2 shadow-lg"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg></button>
+                        </div>
+                        <p class="text-[10px] text-gray-400 mt-1">Ajouter un logo</p>
+                        <button type="button" onclick="promptLogoUrl()" class="text-[10px] text-orange-500 font-bold mt-1">Ou entrer un lien d'image</button>
+                    </div>
+                </div>
+                <div><label class="block text-sm font-medium mb-1">Nom de la boutique</label><input type="text" id="sel-shop-name" oninput="updateSellerSteps(); updateShopLogoInitials();" class="w-full border rounded-lg p-3 bg-white"></div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">Catégorie</label>
+                    <div class="grid grid-cols-2 gap-2" id="category-buttons"></div>
+                    <input type="hidden" id="sel-shop-category" value="">
+                </div>
+                <div><label class="block text-sm font-medium mb-1">Adresse</label><input type="text" id="sel-shop-address" oninput="updateSellerSteps()" class="w-full border rounded-lg p-3 bg-white"></div>
+                <div><label class="block text-sm font-medium mb-1">Description (optionnel)</label><textarea id="sel-shop-desc" rows="2" class="w-full border rounded-lg p-3 bg-white text-sm"></textarea></div>
+                <div><label class="block text-sm font-medium mb-1">Numéro WhatsApp Business</label><div class="flex items-center border rounded-lg p-3 bg-white"><span class="text-gray-500 pr-2 border-r">+242</span><input type="tel" id="sel-whatsapp" class="w-full pl-3"></div></div>
+            </div>
+        </div>
+        <div class="bg-gray-50 p-3 rounded-lg">
+            <p class="text-xs font-bold text-gray-500 uppercase mb-3">Étape 3 - Options</p>
+            <div class="bg-white p-3 rounded-lg mb-2 flex items-center justify-between"><div><p class="font-bold text-sm">Proposer la livraison</p></div><input type="checkbox" id="sel-delivery" checked class="w-5 h-5 accent-orange-500"></div>
+            <div class="bg-white p-3 rounded-lg flex items-center justify-between"><div><p class="font-bold text-sm">Paiement à la livraison</p></div><input type="checkbox" id="sel-cod" class="w-5 h-5 accent-orange-500"></div>
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mt-3"><p class="text-xs text-blue-700">À la création, votre boutique démarre avec <strong>0 étoile</strong>. La note augmentera au fur et à mesure des avis clients.</p></div>
+        </div>
+        <button onclick="createShop()" class="w-full bg-orange-500 text-white font-bold py-4 rounded-lg mb-4">Créer ma boutique</button>
+    </div>
+    <div id="seller-login-form" class="flex-1 overflow-y-auto p-4 space-y-4 hidden">
+        <div class="text-center py-4"><div class="bg-orange-100 p-5 rounded-full w-20 h-20 mx-auto flex items-center justify-center mb-3"><svg class="w-10 h-10 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg></div><h3 class="font-bold text-gray-800 text-lg">Bon retour !</h3></div>
+        <div><label class="block text-sm font-medium mb-1">Téléphone</label><div class="flex items-center border rounded-lg p-3 bg-white"><span class="text-gray-500 pr-2 border-r">+242</span><input type="tel" id="login-phone" class="w-full pl-3"></div></div>
+        <div><label class="block text-sm font-medium mb-1">Mot de passe</label><input type="password" id="login-pass" class="w-full border rounded-lg p-3"></div>
+        <button onclick="sellerLogin()" class="w-full bg-orange-500 text-white font-bold py-4 rounded-lg">Se connecter</button>
+        <p class="text-center text-xs text-gray-500">Mot de passe oublié ? <button onclick="showScreen('forgot-password-screen')" class="text-orange-500 font-bold underline">Cliquez ici</button></p>
+    </div>
+</div>
+
+<!-- ===== VÉRIFICATION SMS ===== -->
+<div id="verify-code-screen" class="screen bg-white p-6 hidden">
+    <div class="flex items-center mb-6"><button onclick="cancelVerification()" class="text-gray-500 mr-4"><svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button><h2 class="text-xl font-bold">Vérification</h2></div>
+    <div class="flex-1 flex flex-col items-center justify-center">
+        <div class="bg-orange-100 p-6 rounded-full mb-6"><svg class="w-12 h-12 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg></div>
+        <h3 class="text-xl font-bold text-center mb-2">Code SMS envoyé</h3>
+        <p id="verify-phone-display" class="font-bold mb-6">+242...</p>
+        <div class="flex justify-center gap-2 mb-6" id="code-inputs">
+            <input type="tel" maxlength="1" class="code-input border-2 rounded-lg bg-white" oninput="moveToNext(this, 0)" onkeydown="moveToPrev(event, this, 0)">
+            <input type="tel" maxlength="1" class="code-input border-2 rounded-lg bg-white" oninput="moveToNext(this, 1)" onkeydown="moveToPrev(event, this, 1)">
+            <input type="tel" maxlength="1" class="code-input border-2 rounded-lg bg-white" oninput="moveToNext(this, 2)" onkeydown="moveToPrev(event, this, 2)">
+            <input type="tel" maxlength="1" class="code-input border-2 rounded-lg bg-white" oninput="moveToNext(this, 3)" onkeydown="moveToPrev(event, this, 3)">
+            <input type="tel" maxlength="1" class="code-input border-2 rounded-lg bg-white" oninput="moveToNext(this, 4)" onkeydown="moveToPrev(event, this, 4)">
+            <input type="tel" maxlength="1" class="code-input border-2 rounded-lg bg-white" oninput="moveToNext(this, 5)" onkeydown="moveToPrev(event, this, 5)">
+        </div>
+        <button onclick="resendCode()" class="text-orange-500 font-bold text-sm">Renvoyer</button>
+    </div>
+    <button onclick="verifyCode()" class="w-full bg-orange-500 text-white font-bold py-4 rounded-lg">Valider</button>
+</div>
+
+<!-- ===== MOT DE PASSE OUBLIÉ ===== -->
+<div id="forgot-password-screen" class="screen bg-white p-6 hidden">
+    <div class="flex items-center mb-6"><button onclick="showScreen('seller-register-screen'); switchSellerMode('login');" class="text-gray-500 mr-4"><svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button><h2 class="text-xl font-bold">Mot de passe oublié</h2></div>
+    <div class="bg-blue-100 p-6 rounded-full w-20 h-20 mx-auto flex items-center justify-center mb-4"><svg class="w-10 h-10 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path></svg></div>
+    <p class="text-sm text-gray-500 text-center mb-6">Entrez votre numéro.</p>
+    <div class="flex items-center border rounded-lg p-3 bg-white mb-4"><span class="text-gray-500 pr-2 border-r">+242</span><input type="tel" id="forgot-phone" class="w-full pl-3"></div>
+    <button onclick="sendResetCode()" class="w-full bg-orange-500 text-white font-bold py-4 rounded-lg">Envoyer le code</button>
+</div>
+
+<!-- ===== NOUVEAU MOT DE PASSE ===== -->
+<div id="reset-password-screen" class="screen bg-white p-6 hidden">
+    <div class="flex items-center mb-6"><button onclick="showScreen('forgot-password-screen')" class="text-gray-500 mr-4"><svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button><h2 class="text-xl font-bold">Nouveau mot de passe</h2></div>
+    <div class="space-y-4">
+        <input type="password" id="new-password" placeholder="Nouveau mot de passe" class="w-full border rounded-lg p-3">
+        <input type="password" id="new-password-confirm" placeholder="Confirmer" class="w-full border rounded-lg p-3">
+    </div>
+    <button onclick="resetPassword()" class="w-full bg-orange-500 text-white font-bold py-4 rounded-lg mt-6">Réinitialiser</button>
+</div>
+
+<!-- ===== ACCUEIL ACHETEUR ===== -->
+<div id="home-screen" class="screen bg-gray-50 hidden">
+    <div class="bg-green-800 text-white p-4 pt-8 flex justify-between items-center flex-shrink-0">
+        <div class="flex items-center space-x-2">
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+            <span id="user-location" class="font-bold">Localisation...</span>
+        </div>
+        <div class="flex items-center gap-3">
+            <button onclick="openNotifications()" class="relative">
+                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+                <span id="notif-badge" class="notif-ping hidden">0</span>
+            </button>
+            <button onclick="showScreen('cart-screen')" class="relative"><svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg><span id="cart-badge" class="absolute -top-2 -right-2 bg-orange-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">0</span></button>
+            <button onclick="openSettings()"><svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg></button>
+        </div>
+    </div>
+    <div class="flex-1 overflow-y-auto p-4 space-y-5 pb-20">
+        <div onclick="openSearch()" class="w-full bg-white border rounded-full py-3 px-4 shadow-sm flex items-center text-gray-400 text-sm cursor-pointer">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+            Rechercher une boutique ou un produit...
+        </div>
+        <div id="categories-strip" class="cat-scroll"></div>
+        <div id="category-results" class="hidden">
+            <h3 id="cat-results-title" class="font-bold text-gray-800 mb-3"></h3>
+            <div id="cat-results-grid" class="grid grid-cols-2 gap-3"></div>
+        </div>
+        <div id="recently-viewed-section" class="hidden">
+            <h3 class="font-bold text-gray-800 mb-3">Vus récemment</h3>
+            <div id="recently-viewed-strip" class="reorder-strip"></div>
+        </div>
+        <div class="bg-green-100 rounded-xl p-4"><h3 class="font-bold text-green-800 text-lg">Des produits frais et locaux</h3><p class="text-sm text-green-600 mt-1">Soutenez nos vendeurs locaux !</p></div>
+        <div>
+            <h3 class="font-bold text-gray-800 mb-3">Top 3 boutiques du mois</h3>
+            <div id="home-top-shops"></div>
+        </div>
+        <div>
+            <div class="flex justify-between items-center mb-3">
+                <h3 class="font-bold text-gray-800">Tous les produits</h3>
+                <span id="products-feed-count" class="text-xs text-gray-500"></span>
+            </div>
+            <div id="products-feed" class="grid grid-cols-2 gap-4"></div>
+        </div>
+    </div>
+    <div class="bg-white border-t flex justify-between p-3 flex-shrink-0">
+        <button onclick="showScreen('home-screen')" class="nav-btn text-green-600 font-bold"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg><span class="mt-1">Accueil</span></button>
+        <button onclick="showScreen('cart-screen')" class="nav-btn text-gray-400 relative"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg><span class="mt-1">Panier</span><span id="cart-badge-bottom" class="absolute top-0 right-2 bg-orange-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center font-bold text-[10px]">0</span></button>
+        <button onclick="openBuyerWallet()" class="nav-btn text-gray-400"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg><span class="mt-1">Portefeuille</span></button>
+        <button onclick="openSubscriptions()" class="nav-btn text-gray-400 relative"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg><span class="mt-1">Abonnement</span><span id="subs-badge" class="absolute top-0 right-2 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center font-bold text-[10px] hidden">0</span></button>
+        <button onclick="showScreen('buyer-profile-screen')" class="nav-btn text-gray-400"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg><span class="mt-1">Profil</span></button>
+    </div>
+</div>
+
+<!-- ===== NOTIFICATIONS ===== -->
+<div id="notifications-screen" class="screen bg-gray-50 hidden">
+    <div class="bg-green-800 text-white p-4 pt-8 flex items-center flex-shrink-0">
+        <button onclick="showScreen('home-screen')" class="mr-4"><svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button>
+        <h1 class="font-bold text-lg">Notifications</h1>
+    </div>
+    <div class="flex-1 overflow-y-auto p-4" id="notifications-list"></div>
+</div>
+
+<!-- ===== RECHERCHE ===== -->
+<div id="search-screen" class="screen bg-gray-50 hidden">
+    <div class="bg-white p-4 pt-8 border-b flex-shrink-0">
+        <div class="flex items-center gap-2">
+            <button onclick="closeSearch()" class="text-gray-500"><svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button>
+            <div class="flex-1 flex items-center border rounded-full py-2 px-4 bg-gray-50">
+                <svg class="w-5 h-5 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                <input type="text" id="search-input" placeholder="Boutique, catégorie, produit..." class="flex-1 bg-transparent outline-none text-sm">
+                <button id="search-clear" onclick="clearSearchInput()" class="text-gray-400 text-lg hidden">×</button>
+            </div>
+        </div>
+    </div>
+    <div class="flex-1 overflow-y-auto p-4" id="search-results"></div>
+</div>
+
+<!-- ===== PROFIL ACHETEUR ===== -->
+<div id="buyer-profile-screen" class="screen bg-gray-50 hidden">
+    <div class="bg-green-800 text-white p-4 pt-8 flex justify-between items-center flex-shrink-0">
+        <button onclick="showScreen('home-screen')"><svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button>
+        <h1 class="font-bold text-lg">Mon profil</h1>
+        <button onclick="openSettings('buyer-profile-screen')"><svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg></button>
+    </div>
+    <div class="flex-1 overflow-y-auto p-4 space-y-4">
+        <div class="bg-white p-4 rounded-xl">
+            <div class="flex items-center gap-4">
+                <div class="relative">
+                    <div id="buyer-avatar" class="bg-green-600 text-white rounded-full w-16 h-16 flex items-center justify-center font-bold text-2xl overflow-hidden">JD</div>
+                    <input type="file" id="buyer-avatar-quick-input" accept="image/*" class="hidden" onchange="handleBuyerAvatarUpload(this)">
+                    <button type="button" onclick="document.getElementById('buyer-avatar-quick-input').click()" class="absolute -bottom-1 -right-1 bg-green-600 text-white rounded-full p-1.5 shadow-lg border-2 border-white">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                    </button>
+                </div>
+                <div class="flex-1"><h2 id="buyer-name" class="font-bold text-gray-800">Jean Dupont</h2><p id="buyer-phone" class="text-sm text-gray-500">+242...</p></div>
+                <button onclick="openEditBuyerProfile()" class="text-green-600 text-xs font-bold border border-green-600 rounded-full px-3 py-1">Modifier</button>
+            </div>
+        </div>
+
+        <button onclick="openBuyerTrophies()" class="w-full bg-white border border-yellow-200 rounded-xl p-4 flex items-center gap-3 shadow-sm text-left">
+            <div class="trophy-menu-medal">
+                <svg viewBox="0 0 64 72" aria-hidden="true"><path d="M17 4h30v15c0 13-6 21-15 25-9-4-15-12-15-25z" fill="url(#tmGold)"/><path d="M17 8H7v8c0 8 4 13 12 15M47 8h10v8c0 8-4 13-12 15" fill="none" stroke="#d39a16" stroke-width="5" stroke-linecap="round"/><path d="M25 43h14v10H25z" fill="#d39a16"/><path d="M19 53h26l5 10H14z" fill="#f59e0b"/><circle cx="32" cy="19" r="10" fill="#fff7d6" stroke="#d39a16" stroke-width="2"/><path d="M32 13l2 4 5 .5-3.7 3 1.2 4.7-4.5-2.5-4.5 2.5 1.2-4.7-3.7-3 5-.5z" fill="#d39a16"/><defs><linearGradient id="tmGold" x1="0" x2="1"><stop stop-color="#f8d568"/><stop offset=".5" stop-color="#fff1a8"/><stop offset="1" stop-color="#d99b20"/></linearGradient></defs></svg>
+            </div>
+            <div class="flex-1"><p class="font-bold text-gray-800">Mes trophées</p><p id="buyer-trophy-summary" class="text-xs text-gray-500">Découvrez vos récompenses et votre progression</p></div>
+            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+        </button>
+
+        <button onclick="openBuyerFavorites()" class="w-full bg-white border border-red-200 rounded-xl p-4 flex items-center gap-3 shadow-sm text-left">
+            <div class="bg-red-100 text-red-500 rounded-full w-12 h-12 flex items-center justify-center text-2xl">♥</div>
+            <div class="flex-1"><p class="font-bold text-gray-800">Mes produits favoris</p><p id="buyer-favorites-summary" class="text-xs text-gray-500">Retrouvez vos coups de cœur</p></div>
+            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+        </button>
+
+        <button onclick="openBuyerReferral()" class="w-full bg-white border border-green-200 rounded-xl p-4 flex items-center gap-3 shadow-sm text-left">
+            <div class="bg-green-100 text-green-600 rounded-full w-12 h-12 flex items-center justify-center text-2xl">👥</div>
+            <div class="flex-1"><p class="font-bold text-gray-800">Parrainer des amis</p><p id="buyer-referral-summary" class="text-xs text-gray-500">Gagnez des trophées en parrainant</p></div>
+            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+        </button>
+
+        <div class="flex gap-2">
+            <button id="buyer-tab-orders" onclick="switchBuyerTab('orders')" class="flex-1 bg-green-600 text-white font-bold py-2 rounded-lg text-sm">Commandes</button>
+            <button id="buyer-tab-messages" onclick="switchBuyerTab('messages')" class="flex-1 bg-white text-gray-600 font-bold py-2 rounded-lg text-sm border relative">Messages<span id="buyer-msg-badge" class="msg-badge hidden">0</span></button>
+        </div>
+        <div id="buyer-orders-tab" class="space-y-3"></div>
+        <div id="buyer-messages-tab" class="space-y-3 hidden"></div>
+    </div>
+</div>
+
+<!-- ===== TROPHÉES ACHETEUR ===== -->
+<div id="buyer-trophies-screen" class="screen bg-gray-50 hidden">
+    <div class="bg-green-800 text-white p-4 pt-8 flex items-center flex-shrink-0">
+        <button onclick="showScreen('buyer-profile-screen')" class="mr-4"><svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg></button>
+        <div><h1 class="font-bold text-lg">Mes trophées</h1><p class="text-[10px] opacity-80">Mes récompenses Grand Marché</p></div>
+    </div>
+    <div class="flex-1 overflow-y-auto p-4 pb-8">
+        <div class="trophy-hero-card mb-4">
+            <div class="trophy-hero-medal" id="trophy-hero-medal"></div>
+            <div class="flex-1"><p class="text-xs font-bold uppercase tracking-wide text-yellow-700">Collection</p><h2 class="text-xl font-extrabold text-gray-800 mt-1"><span id="trophy-unlocked-count">0</span> trophée(s) débloqué(s)</h2><p class="text-xs text-gray-500 mt-1">Progressez naturellement en utilisant l'application.</p></div>
+        </div>
+        <div id="buyer-trophies-grid" class="grid grid-cols-1 gap-3"></div>
+    </div>
+</div>
+
+<!-- ===== MES FAVORIS ===== -->
+<div id="buyer-favorites-screen" class="screen bg-gray-50 hidden">
+    <div class="bg-green-800 text-white p-4 pt-8 flex items-center flex-shrink-0">
+        <button onclick="showScreen('buyer-profile-screen')" class="mr-4"><svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg></button>
+        <div><h1 class="font-bold text-lg">Mes favoris</h1><p class="text-[10px] opacity-80">Vos produits coup de cœur</p></div>
+    </div>
+    <div class="flex-1 overflow-y-auto p-4">
+        <div id="buyer-favorites-grid" class="grid grid-cols-2 gap-3"></div>
+    </div>
+</div>
+
+<!-- ===== PARRAINAGE ===== -->
+<div id="buyer-referral-screen" class="screen bg-gray-50 hidden">
+    <div class="bg-green-800 text-white p-4 pt-8 flex items-center flex-shrink-0">
+        <button onclick="showScreen('buyer-profile-screen')" class="mr-4"><svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg></button>
+        <div><h1 class="font-bold text-lg">Parrainage</h1><p class="text-[10px] opacity-80">Invitez vos amis, gagnez des trophées</p></div>
+    </div>
+    <div class="flex-1 overflow-y-auto p-4 space-y-4 pb-8">
+        <div class="bg-gradient-to-br from-emerald-500 to-green-700 rounded-2xl p-5 text-white shadow-lg">
+            <p class="text-xs opacity-90">Mon code de parrainage</p>
+            <p id="referral-code-display" class="text-3xl font-bold mt-2 tracking-widest">------</p>
+            <div class="flex gap-2 mt-4">
+                <button onclick="copyReferralCode()" class="flex-1 bg-white bg-opacity-20 text-white font-bold py-2 rounded-lg text-xs">Copier le code</button>
+                <button onclick="shareReferral()" class="flex-1 bg-white text-green-700 font-bold py-2 rounded-lg text-xs">Partager</button>
+            </div>
+        </div>
+        <div class="bg-white rounded-xl p-4">
+            <div class="flex justify-between items-center mb-3">
+                <h3 class="font-bold text-sm">Mes filleuls</h3>
+                <span id="referral-count" class="text-xs font-bold text-green-600">0 filleul</span>
+            </div>
+            <div id="referral-list" class="space-y-2"></div>
+            <button onclick="addReferralManually()" class="w-full mt-3 border-2 border-dashed border-green-300 text-green-600 font-bold py-2 rounded-lg text-xs">+ Enregistrer un filleul (simulation)</button>
+        </div>
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
+            <p class="text-[11px] text-blue-700 leading-relaxed"><strong>Comment ça marche ?</strong><br>
+            1. Partagez votre code avec vos amis<br>
+            2. Votre ami s'inscrit sur Grand Marché<br>
+            3. Le parrainage est automatiquement comptabilisé<br>
+            4. Débloquez <strong>Parrain</strong> (10), <strong>Super parrain</strong> (25) et <strong>Ambassadeur</strong> (50).</p>
+        </div>
+        <div class="bg-white rounded-xl p-4">
+            <p class="text-xs font-bold text-gray-500 uppercase mb-2">Progression</p>
+            <div class="space-y-2">
+                <div class="flex justify-between text-xs"><span>🥉 Parrain</span><span id="ref-p1">0 / 10</span></div>
+                <div class="bg-gray-100 rounded-full h-2"><div id="ref-bar1" class="bg-orange-500 h-2 rounded-full" style="width:0%"></div></div>
+                <div class="flex justify-between text-xs mt-2"><span>🥈 Super parrain</span><span id="ref-p2">0 / 25</span></div>
+                <div class="bg-gray-100 rounded-full h-2"><div id="ref-bar2" class="bg-blue-500 h-2 rounded-full" style="width:0%"></div></div>
+                <div class="flex justify-between text-xs mt-2"><span>💎 Ambassadeur</span><span id="ref-p3">0 / 50</span></div>
+                <div class="bg-gray-100 rounded-full h-2"><div id="ref-bar3" class="bg-purple-500 h-2 rounded-full" style="width:0%"></div></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== PORTEFEUILLE ACHETEUR ===== -->
+<div id="buyer-wallet-screen" class="screen bg-gray-50 hidden">
+    <div class="bg-green-800 text-white p-4 pt-8 flex items-center flex-shrink-0">
+        <button onclick="showScreen('home-screen')" class="mr-4"><svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button>
+        <h1 class="font-bold text-lg">Mon portefeuille</h1>
+    </div>
+    <div class="p-4 flex-shrink-0">
+        <div class="bg-gradient-to-br from-emerald-500 to-green-700 rounded-2xl p-5 text-white shadow-lg">
+            <p class="text-xs opacity-90">Solde disponible</p>
+            <p id="buyer-wallet-balance" class="text-3xl font-bold mt-1">0 FCFA</p>
+            <div class="grid grid-cols-3 gap-2 mt-4 text-[10px]">
+                <div><p class="opacity-80">En séquestre</p><p id="buyer-wallet-escrow" class="font-bold text-sm mt-0.5">0 F</p></div>
+                <div><p class="opacity-80">Dépensé</p><p id="buyer-wallet-spent" class="font-bold text-sm mt-0.5">0 F</p></div>
+                <div><p class="opacity-80">Remboursé</p><p id="buyer-wallet-refunded" class="font-bold text-sm mt-0.5">0 F</p></div>
+            </div>
+        </div>
+        <div class="grid grid-cols-2 gap-2 mt-3">
+            <button onclick="openBuyerTopUp()" class="bg-green-600 text-white font-bold py-3 rounded-lg text-sm flex items-center justify-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                Recharger
+            </button>
+            <button onclick="openBuyerWithdraw()" class="bg-orange-500 text-white font-bold py-3 rounded-lg text-sm flex items-center justify-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path></svg>
+                Retirer
+            </button>
+        </div>
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mt-3">
+            <p class="text-[10px] text-blue-700 leading-relaxed"><strong>Séquestre :</strong> les fonds en séquestre sont les paiements pour vos commandes en cours. Ils sont libérés au vendeur dès que vous confirmez la réception. Les remboursements en cas de non-livraison retournent automatiquement sur votre solde.</p>
+        </div>
+    </div>
+    <div class="flex-1 overflow-y-auto p-4 pt-0">
+        <h3 class="font-bold text-sm mb-2 text-gray-700">Historique des transactions</h3>
+        <div id="buyer-wallet-history" class="space-y-2"></div>
+    </div>
+</div>
+
+<!-- ===== RECHARGEMENT ACHETEUR ===== -->
+<div id="buyer-topup-screen" class="screen bg-white hidden">
+    <div class="bg-green-800 text-white p-4 pt-8 flex items-center flex-shrink-0">
+        <button onclick="showScreen('buyer-wallet-screen')" class="mr-4"><svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button>
+        <h1 class="font-bold text-lg">Recharger mon portefeuille</h1>
+    </div>
+    <div class="flex-1 overflow-y-auto p-5 space-y-4">
+        <div class="bg-gray-50 rounded-xl p-4">
+            <p class="text-xs text-gray-500">Solde actuel</p>
+            <p id="topup-current-balance" class="text-2xl font-bold text-gray-800 mt-1">0 FCFA</p>
+        </div>
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Montant à recharger (FCFA)</label>
+            <input type="number" id="topup-amount" placeholder="Minimum 500" class="w-full border rounded-lg p-3 text-lg font-bold" oninput="updateTopupPreview()">
+            <p id="topup-error" class="text-xs text-red-500 mt-1 hidden"></p>
+            <div class="grid grid-cols-3 gap-2 mt-2">
+                <button onclick="setTopupAmount(500)" class="border-2 border-gray-200 rounded-lg py-2 text-xs font-bold">500 F</button>
+                <button onclick="setTopupAmount(1000)" class="border-2 border-gray-200 rounded-lg py-2 text-xs font-bold">1 000 F</button>
+                <button onclick="setTopupAmount(5000)" class="border-2 border-gray-200 rounded-lg py-2 text-xs font-bold">5 000 F</button>
+                <button onclick="setTopupAmount(10000)" class="border-2 border-gray-200 rounded-lg py-2 text-xs font-bold">10 000 F</button>
+                <button onclick="setTopupAmount(25000)" class="border-2 border-gray-200 rounded-lg py-2 text-xs font-bold">25 000 F</button>
+                <button onclick="setTopupAmount(50000)" class="border-2 border-gray-200 rounded-lg py-2 text-xs font-bold">50 000 F</button>
+            </div>
+        </div>
+        <div>
+            <p class="text-sm font-medium mb-2">Moyen de paiement</p>
+            <div class="space-y-2">
+                <div onclick="selectTopupMethod('mobile')" id="topup-method-mobile" class="border-2 border-green-500 rounded-xl p-3 cursor-pointer flex items-center gap-3 bg-green-50">
+                    <div class="bg-yellow-500 p-2 rounded-full w-9 h-9 flex items-center justify-center text-white font-bold text-[10px]">MoMo</div>
+                    <p class="font-bold text-sm flex-1">MTN Mobile Money</p>
+                </div>
+                <div onclick="selectTopupMethod('airtel')" id="topup-method-airtel" class="border-2 border-gray-200 rounded-xl p-3 cursor-pointer flex items-center gap-3">
+                    <div class="bg-red-500 p-2 rounded-full w-9 h-9 flex items-center justify-center text-white font-bold text-[10px]">AM</div>
+                    <p class="font-bold text-sm flex-1">Airtel Money</p>
+                </div>
+                <div onclick="selectTopupMethod('card')" id="topup-method-card" class="border-2 border-gray-200 rounded-xl p-3 cursor-pointer flex items-center gap-3">
+                    <div class="bg-blue-500 p-2 rounded-full w-9 h-9 flex items-center justify-center text-white"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg></div>
+                    <p class="font-bold text-sm flex-1">Carte bancaire</p>
+                </div>
+            </div>
+        </div>
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
+            <p class="text-[11px] text-blue-700 leading-relaxed">L'argent envoyé dans votre portefeuille reste disponible pour payer vos commandes. En cas de non-livraison, vous êtes remboursé automatiquement.</p>
+        </div>
+    </div>
+    <div class="bg-white border-t p-4 flex-shrink-0">
+        <button onclick="confirmTopUp()" class="w-full bg-green-600 text-white font-bold py-3 rounded-lg">Recharger</button>
+    </div>
+</div>
+
+<!-- ===== RETRAIT ACHETEUR ===== -->
+<div id="buyer-withdraw-screen" class="screen bg-white hidden">
+    <div class="bg-green-800 text-white p-4 pt-8 flex items-center flex-shrink-0">
+        <button onclick="showScreen('buyer-wallet-screen')" class="mr-4"><svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button>
+        <h1 class="font-bold text-lg">Retirer de l'argent</h1>
+    </div>
+    <div class="flex-1 overflow-y-auto p-5 space-y-4">
+        <div class="bg-gray-50 rounded-xl p-4">
+            <p class="text-xs text-gray-500">Solde disponible</p>
+            <p id="buyer-withdraw-balance" class="text-2xl font-bold text-gray-800 mt-1">0 FCFA</p>
+        </div>
+        <div>
+            <div class="flex items-center justify-between mb-1">
+                <label class="block text-sm font-medium text-gray-700">Montant à retirer (FCFA)</label>
+                <button onclick="buyerWithdrawAll()" class="text-xs text-green-600 font-bold underline">Tout retirer</button>
+            </div>
+            <input type="number" id="buyer-withdraw-amount" oninput="updateBuyerWithdrawPreview()" placeholder="Minimum 500" class="w-full border rounded-lg p-3 text-lg font-bold">
+            <p id="buyer-withdraw-error" class="text-xs text-red-500 mt-1 hidden"></p>
+        </div>
+        <div>
+            <p class="text-sm font-medium mb-2">Moyen de retrait</p>
+            <div class="space-y-2">
+                <div onclick="selectBuyerWithdrawMethod('mobile')" id="bwd-method-mobile" class="border-2 border-green-500 rounded-xl p-3 cursor-pointer flex items-center gap-3 bg-green-50">
+                    <div class="bg-yellow-500 p-2 rounded-full w-9 h-9 flex items-center justify-center text-white font-bold text-[10px]">MoMo</div>
+                    <p class="font-bold text-sm flex-1">Mobile Money</p>
+                </div>
+                <div onclick="selectBuyerWithdrawMethod('airtel')" id="bwd-method-airtel" class="border-2 border-gray-200 rounded-xl p-3 cursor-pointer flex items-center gap-3">
+                    <div class="bg-red-500 p-2 rounded-full w-9 h-9 flex items-center justify-center text-white font-bold text-[10px]">AM</div>
+                    <p class="font-bold text-sm flex-1">Airtel Money</p>
+                </div>
+                <div onclick="selectBuyerWithdrawMethod('card')" id="bwd-method-card" class="border-2 border-gray-200 rounded-xl p-3 cursor-pointer flex items-center gap-3">
+                    <div class="bg-blue-500 p-2 rounded-full w-9 h-9 flex items-center justify-center text-white"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg></div>
+                    <p class="font-bold text-sm flex-1">Carte bancaire</p>
+                </div>
+            </div>
+        </div>
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
+            <p class="text-[11px] text-blue-700 leading-relaxed">Retrait minimum : 500 FCFA. L'argent retiré provient de votre solde disponible (hors séquestre).</p>
+        </div>
+    </div>
+    <div class="bg-white border-t p-4 flex-shrink-0">
+        <button onclick="confirmBuyerWithdrawal()" class="w-full bg-orange-500 text-white font-bold py-3 rounded-lg">Confirmer le retrait</button>
+    </div>
+</div>
+
+<!-- ===== ÉDITION PROFIL ACHETEUR ===== -->
+<div id="edit-buyer-profile-screen" class="screen bg-white hidden">
+    <div class="p-6 pb-3 flex items-center flex-shrink-0">
+        <button onclick="showScreen('buyer-profile-screen')" class="text-gray-500 mr-4"><svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button>
+        <h2 class="text-xl font-bold text-gray-800">Modifier mon profil</h2>
+    </div>
+    <div class="flex-1 overflow-y-auto px-6 pb-6">
+        <div class="flex justify-center mb-6">
+            <div class="text-center">
+                <div class="relative inline-block">
+                    <div id="edit-buyer-avatar-preview" class="bg-green-600 text-white rounded-full w-24 h-24 flex items-center justify-center font-bold text-3xl overflow-hidden border-4 border-green-200">
+                        <img id="edit-buyer-avatar-img" src="" class="w-full h-full object-cover hidden"><span id="edit-buyer-avatar-initials">JD</span>
+                    </div>
+                    <input type="file" id="edit-buyer-avatar-input" accept="image/*" class="hidden" onchange="handleBuyerAvatarUpload(this)">
+                    <button type="button" onclick="document.getElementById('edit-buyer-avatar-input').click()" class="absolute -bottom-1 -right-1 bg-green-600 text-white rounded-full p-2 shadow-lg"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg></button>
+                </div>
+                <p class="text-[10px] text-gray-400 mt-1">Photo de profil</p>
+            </div>
+        </div>
+        <div class="space-y-4">
+            <div><label class="block text-sm font-medium text-gray-700 mb-1">Nom complet</label><input type="text" id="edit-buyer-name" class="w-full border rounded-lg p-3"></div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Téléphone</label>
+                <div class="flex items-center border rounded-lg p-3 bg-white"><span class="text-gray-500 pr-2 border-r">+242</span><input type="tel" id="edit-buyer-phone" class="w-full pl-3"></div>
+            </div>
+            <div><label class="block text-sm font-medium text-gray-700 mb-1">Adresse email</label><input type="email" id="edit-buyer-email" class="w-full border rounded-lg p-3"></div>
+            <button onclick="saveBuyerProfile()" class="w-full bg-green-600 text-white font-bold py-3 rounded-lg mt-4">Enregistrer</button>
+        </div>
+    </div>
+</div>
+
+<!-- ===== NOTER UNE COMMANDE ===== -->
+<div id="rate-order-screen" class="screen bg-white hidden">
+    <div class="bg-orange-500 text-white p-4 pt-8 flex items-center flex-shrink-0">
+        <button onclick="closeRateOrder()" class="mr-4"><svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button>
+        <h1 class="font-bold text-lg">Noter la boutique</h1>
+    </div>
+    <div class="flex-1 overflow-y-auto p-5 space-y-6">
+        <div class="text-center bg-gray-50 rounded-xl py-4"><h2 id="rate-shop-name" class="font-bold text-gray-800"></h2><p id="rate-order-id" class="text-xs text-gray-500 mt-1"></p></div>
+        <div class="space-y-5">
+            <div><p class="font-bold text-sm mb-2 flex items-center justify-between"><span>Livraison</span><span id="rate-delivery-val" class="text-xs text-gray-500">0 / 6</span></p><div id="rate-delivery" class="flex justify-between gap-1"></div></div>
+            <div><p class="font-bold text-sm mb-2 flex items-center justify-between"><span>Qualité</span><span id="rate-quality-val" class="text-xs text-gray-500">0 / 6</span></p><div id="rate-quality" class="flex justify-between gap-1"></div></div>
+            <div><p class="font-bold text-sm mb-2 flex items-center justify-between"><span>Comportement</span><span id="rate-behavior-val" class="text-xs text-gray-500">0 / 6</span></p><div id="rate-behavior" class="flex justify-between gap-1"></div></div>
+        </div>
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-3"><p class="text-xs text-blue-700">Chaque critère noté <strong>6 étoiles</strong> rapporte <strong>1 point de certification</strong> (1000 points requis).</p></div>
+        <div><label class="block text-sm font-medium mb-1">Commentaire (optionnel)</label><textarea id="rate-comment" rows="3" placeholder="Décrivez votre expérience..." class="w-full border rounded-lg p-3 text-sm"></textarea></div>
+    </div>
+    <div class="bg-white border-t p-4 flex-shrink-0"><button onclick="submitRating()" class="w-full bg-orange-500 text-white font-bold py-3 rounded-lg">Publier mon avis</button></div>
+</div>
+
+<!-- ===== CHAT ===== -->
+<div id="chat-screen" class="screen bg-gray-50 hidden">
+    <div class="bg-green-700 text-white p-4 pt-8 flex items-center flex-shrink-0">
+        <button onclick="closeChat()" class="mr-4"><svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button>
+        <div id="chat-header-avatar" class="bg-green-600 text-white rounded-full w-10 h-10 flex items-center justify-center font-bold mr-3">?</div>
+        <div class="flex-1 min-w-0">
+            <h2 id="chat-header-name" class="font-bold truncate">Nom</h2>
+            <p class="text-[10px] opacity-90">Surveillé pour votre sécurité</p>
+        </div>
+        <button onclick="openReportFromChat()" class="text-white"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg></button>
+    </div>
+    <div class="bg-amber-50 border-b border-amber-200 px-3 py-2 flex-shrink-0">
+        <p class="text-[10px] text-amber-800 leading-relaxed"><strong>⚠️ Attention :</strong> tous les messages sont conservés par Grand Marché. En cas d'arnaque, fraude ou infraction, ils peuvent être utilisés dans le cadre de poursuites judiciaires.</p>
+    </div>
+    <div id="chat-product-banner" class="bg-white border-b-2 border-orange-200 p-3 flex-shrink-0 hidden">
+        <p class="text-[10px] text-orange-600 font-bold uppercase mb-2">Produit en négociation</p>
+        <div class="flex items-center gap-3">
+            <img id="chat-product-img" class="w-14 h-14 rounded-lg object-cover bg-gray-100">
+            <div class="flex-1 min-w-0">
+                <p id="chat-product-name" class="font-bold text-sm truncate"></p>
+                <p id="chat-product-price" class="text-orange-500 font-bold text-sm"></p>
+            </div>
+        </div>
+        <div class="flex gap-2 mt-3" id="chat-product-actions">
+            <button onclick="refuseChatProduct()" class="flex-1 border-2 border-red-500 text-red-500 font-bold py-2 rounded-lg text-xs active:bg-red-50">Refuser</button>
+            <button onclick="acceptChatProduct()" class="flex-1 bg-green-600 text-white font-bold py-2 rounded-lg text-xs active:bg-green-700">Accepter</button>
+        </div>
+        <p id="chat-product-status" class="text-xs text-center mt-2 font-bold hidden"></p>
+    </div>
+    <div id="chat-messages" class="flex-1 overflow-y-auto p-4 flex flex-col gap-2 bg-gray-100"></div>
+    <div class="bg-white border-t p-3 flex gap-2 flex-shrink-0">
+        <input type="text" id="chat-input" placeholder="Message..." class="flex-1 border rounded-full p-3" onkeydown="if(event.key==='Enter') sendMessage()">
+        <button onclick="sendMessage()" class="bg-green-600 text-white rounded-full w-12 h-12 flex items-center justify-center"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg></button>
+    </div>
+</div>
+
+<!-- ===== MESSAGES VENDEUR ===== -->
+<div id="seller-messages-screen" class="screen bg-gray-50 hidden">
+    <div class="bg-orange-500 text-white p-4 pt-8 flex items-center flex-shrink-0">
+        <button onclick="showScreen('seller-dashboard-screen')" class="mr-4"><svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button>
+        <h1 class="font-bold text-lg">Messages clients</h1>
+    </div>
+    <div class="flex-1 overflow-y-auto p-4 space-y-3" id="seller-messages-list"></div>
+    <div class="bg-white border-t p-3 flex justify-between flex-shrink-0">
+        <button onclick="showScreen('seller-dashboard-screen')" class="nav-btn text-gray-400"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg><span class="mt-1 text-[10px]">Tableau</span></button>
+        <button onclick="showScreen('seller-products-screen')" class="nav-btn text-gray-400"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg><span class="mt-1 text-[10px]">Produits</span></button>
+        <button onclick="showScreen('seller-orders-screen')" class="nav-btn text-gray-400 relative"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg><span class="mt-1 text-[10px]">Commandes</span><span id="orders-badge0" class="absolute top-0 right-2 bg-red-500 text-white text-[9px] rounded-full w-4 h-4 flex items-center justify-center font-bold hidden">0</span></button>
+        <button onclick="showScreen('seller-messages-screen')" class="nav-btn text-orange-500 font-bold relative"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg><span class="mt-1 text-[10px]">Messages</span><span id="msg-badge" class="msg-badge hidden">0</span></button>
+        <button onclick="openMyShopProfile()" class="nav-btn text-gray-400"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg><span class="mt-1 text-[10px]">Boutique</span></button>
+    </div>
+</div>
+
+<!-- ===== ABONNEMENTS ===== -->
+<div id="subscriptions-screen" class="screen bg-gray-50 hidden">
+    <div class="bg-green-800 text-white p-4 pt-8 flex items-center flex-shrink-0">
+        <button onclick="showScreen('home-screen')" class="mr-4"><svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button>
+        <h1 class="font-bold text-lg">Mes abonnements</h1>
+    </div>
+    <div class="flex-1 overflow-y-auto p-4 space-y-3" id="subscriptions-list"></div>
+</div>
+
+<!-- ===== PRODUIT (client) ===== -->
+<div id="product-screen" class="screen bg-gray-50 hidden">
+    <div class="bg-white p-4 pt-8 border-b flex-shrink-0 flex justify-between items-center">
+        <button onclick="closeProductScreen()"><svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button>
+        <div class="flex gap-3 items-center">
+            <button id="fav-product-btn" onclick="toggleFavorite()" class="text-2xl text-gray-400">♡</button>
+            <button onclick="shareOnWhatsApp()" class="text-green-500 text-sm font-bold flex items-center gap-1"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg>Partager</button>
+            <button onclick="openReportShop()" class="text-red-400 text-sm font-bold">Signaler</button>
+        </div>
+    </div>
+    <div class="flex-1 overflow-y-auto pb-4">
+        <div class="bg-white">
+            <div id="product-main-media" class="w-full flex items-center justify-center bg-black overflow-hidden" style="aspect-ratio: 1;"></div>
+            <div id="product-thumbnails" class="flex gap-2 p-3 overflow-x-auto"></div>
+        </div>
+        <div class="bg-white p-4 mt-2">
+            <h1 id="product-name" class="text-base font-bold leading-snug text-gray-800"></h1>
+            <div class="flex items-center gap-3 mt-2 text-xs flex-wrap">
+                <span class="text-yellow-400 text-sm" id="product-rating-stars">★★★★★</span>
+                <span id="product-rating" class="text-gray-500">0</span>
+                <span class="text-gray-300">|</span>
+                <span id="product-reviews" class="text-gray-500">0 avis</span>
+                <span class="text-gray-300">|</span>
+                <span id="product-sold" class="text-green-600 font-bold">0 vendus</span>
+            </div>
+            <div class="mt-3 flex items-baseline gap-2">
+                <span class="text-2xl font-bold text-orange-500" id="product-price">0 FCFA</span>
+                <span class="text-xs text-gray-400">/ pièce</span>
+            </div>
+            <div class="mt-3 grid grid-cols-3 gap-2 text-center py-2 bg-gray-50 rounded-lg">
+                <div class="border-r border-gray-200"><p class="text-[10px] text-gray-400 uppercase">Commande min.</p><p class="font-bold text-sm mt-0.5">1 pièce</p></div>
+                <div class="border-r border-gray-200"><p class="text-[10px] text-gray-400 uppercase">Stock</p><p class="font-bold text-sm mt-0.5" id="product-stock">—</p></div>
+                <div><p class="text-[10px] text-gray-400 uppercase">Catégorie</p><p class="font-bold text-xs mt-0.5 truncate" id="product-cat">—</p></div>
+            </div>
+        </div>
+        <div class="bg-white p-4 mt-2">
+            <div class="flex items-center gap-3">
+                <div id="product-seller-logo" class="bg-green-600 text-white rounded-full w-12 h-12 flex items-center justify-center font-bold overflow-hidden flex-shrink-0">?</div>
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <h3 id="product-seller-name" class="font-bold text-sm truncate">Boutique</h3>
+                        <span id="product-seller-cert" class="text-[9px] bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded font-bold hidden">CERTIFIÉE</span>
+                    </div>
+                    <p class="text-[11px] text-gray-500 mt-0.5 truncate"><span id="product-seller-loc">Brazzaville</span> · Vendeur local</p>
+                    <p class="text-[11px] text-green-600 mt-0.5 font-bold" id="product-seller-stats">Taux de réponse : 95%</p>
+                </div>
+            </div>
+            <div class="flex gap-2 mt-3">
+                <button onclick="openProductChat()" class="flex-1 bg-green-600 text-white font-bold py-2 rounded-lg text-xs flex items-center justify-center gap-1.5"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>Discuter</button>
+                <button onclick="viewSellerShop()" class="flex-1 bg-orange-500 text-white font-bold py-2 rounded-lg text-xs">Voir la boutique</button>
+            </div>
+            <button id="product-follow-btn" onclick="toggleFollowFromProduct()" class="mt-2 w-full bg-green-600 text-white font-bold py-2 rounded-lg text-xs">Suivre</button>
+        </div>
+        <div class="bg-white p-4 mt-2">
+            <h3 class="font-bold text-sm mb-3 text-gray-800">Livraison & réception</h3>
+            <div id="product-delivery-detail" class="space-y-2 text-sm"></div>
+            <button onclick="openNegotiateDelivery()" class="mt-3 w-full border-2 border-green-600 text-green-600 font-bold py-2 rounded-lg text-xs">Discuter des modalités de livraison</button>
+        </div>
+        <div id="product-warranty-card" class="bg-white p-4 mt-2 hidden">
+            <h3 class="font-bold text-sm mb-2 text-gray-800">Garantie</h3>
+            <div class="bg-green-50 border border-green-200 rounded-lg p-3">
+                <p class="text-sm text-green-800 leading-relaxed" id="product-warranty-detail"></p>
+            </div>
+        </div>
+        <div class="bg-white p-4 mt-2">
+            <h3 class="font-bold text-sm mb-2 text-gray-800">Description du produit</h3>
+            <p id="product-desc" class="text-sm text-gray-600 leading-relaxed whitespace-pre-line"></p>
+        </div>
+        <div class="bg-white p-4 mt-2">
+            <div class="flex justify-between items-center mb-3">
+                <h3 class="font-bold text-sm text-gray-800">Avis clients</h3>
+                <button onclick="viewSellerShop()" class="text-orange-500 text-xs font-bold">Voir tout</button>
+            </div>
+            <div id="product-reviews-list" class="space-y-3"></div>
+        </div>
+        <div class="bg-white p-4 mt-2">
+            <h3 class="font-bold text-sm mb-3 text-gray-800">Vous aimerez aussi</h3>
+            <div id="product-related" class="grid grid-cols-2 gap-3"></div>
+        </div>
+    </div>
+    <div class="bg-white border-t p-3 flex-shrink-0 shadow-lg">
+        <div class="flex items-center gap-3 mb-2">
+            <span class="text-xs text-gray-500 font-bold">Quantité :</span>
+            <div class="flex items-center border-2 border-gray-200 rounded-lg overflow-hidden">
+                <button onclick="productQtyChange(-1)" class="px-3 py-1.5 font-bold text-lg bg-gray-50 active:bg-gray-200">−</button>
+                <span id="product-qty" class="px-4 font-bold text-sm">1</span>
+                <button onclick="productQtyChange(1)" class="px-3 py-1.5 font-bold text-lg bg-gray-50 active:bg-gray-200">+</button>
+            </div>
+            <span class="ml-auto text-base font-bold text-orange-500" id="product-line-total">0 FCFA</span>
+        </div>
+        <div class="flex gap-2">
+            <button onclick="addToCartWithQty()" class="flex-1 bg-orange-500 text-white font-bold py-3 rounded-lg text-sm active:bg-orange-600">Ajouter au panier</button>
+            <button onclick="buyNow()" class="flex-1 bg-green-600 text-white font-bold py-3 rounded-lg text-sm active:bg-green-700">Acheter</button>
+        </div>
+    </div>
+</div>
+
+<!-- ===== PANIER ===== -->
+<div id="cart-screen" class="screen bg-gray-50 hidden">
+    <div class="bg-white p-4 pt-8 border-b flex-shrink-0 flex items-center">
+        <button onclick="showScreen('home-screen')" class="mr-4"><svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button>
+        <span class="text-xl font-bold">Mon panier (<span id="cart-count">0</span>)</span>
+    </div>
+    <div class="flex-1 overflow-y-auto p-4" id="cart-items-container"></div>
+    <div id="cart-footer" class="bg-white border-t p-4 hidden flex-shrink-0">
+        <div class="flex justify-between mb-2 text-gray-600"><span>Sous-total</span><span id="cart-subtotal">0 FCFA</span></div>
+        <div class="flex justify-between mb-4 text-gray-600"><span>Livraison</span><span id="cart-shipping" class="text-orange-500 font-bold">À négocier</span></div>
+        <div class="flex justify-between mb-4 text-lg font-bold"><span>Total</span><span id="cart-total">0 FCFA</span></div>
+        <button onclick="goToCheckout()" class="w-full bg-green-600 text-white font-bold py-3 rounded-lg">Valider mon panier</button>
+    </div>
+</div>
+
+<!-- ===== CHECKOUT ===== -->
+<div id="checkout-screen" class="screen bg-white hidden">
+    <div class="p-4 pt-8 border-b flex-shrink-0 flex items-center"><button onclick="showScreen('cart-screen')" class="mr-4"><svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button><span class="text-xl font-bold">Validation</span></div>
+    <div class="flex-1 overflow-y-auto p-4 space-y-5 pb-32">
+        <div><h3 class="font-bold mb-2">Adresse de livraison</h3><div class="border rounded-xl p-4 bg-white"><p id="checkout-name" class="font-bold">Talansi Naomi</p><p id="checkout-phone" class="text-sm text-gray-500 mt-1">+242...</p><input id="checkout-address" type="text" placeholder="Quartier, avenue, repère (si livraison à domicile)" class="w-full border rounded-lg p-2 mt-2 text-sm"></div></div>
+        <div>
+            <h3 class="font-bold mb-2">Mode de récupération</h3>
+            <div class="space-y-2">
+                <div onclick="selectDelivery('home')" id="delivery-home" class="border-2 border-green-500 rounded-xl p-4 bg-green-50 cursor-pointer flex justify-between items-center">
+                    <div><p class="font-bold text-sm">Livraison à domicile</p><p class="text-xs text-gray-500">Frais à négocier avec le vendeur dans le chat</p></div>
+                    <span class="font-bold text-orange-500 text-xs">À négocier</span>
+                </div>
+                <div onclick="selectDelivery('pickup')" id="delivery-pickup" class="border-2 border-gray-200 rounded-xl p-4 cursor-pointer flex justify-between items-center">
+                    <div><p class="font-bold text-sm">Retrait en boutique</p><p class="text-xs text-gray-500">Vous récupérez le produit sur place</p></div>
+                    <span class="font-bold text-green-600 text-xs">Gratuit</span>
+                </div>
+            </div>
+        </div>
+        <div>
+            <h3 class="font-bold mb-2">Paiement depuis mon portefeuille</h3>
+            <div class="bg-green-50 border-2 border-green-500 rounded-xl p-4">
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-sm font-bold text-green-800">Solde disponible</span>
+                    <span id="checkout-wallet-balance" class="text-lg font-bold text-green-700">0 FCFA</span>
+                </div>
+                <div class="flex justify-between text-xs text-green-700 pb-2 border-b border-green-200 mb-2">
+                    <span>Total à payer</span>
+                    <span id="checkout-wallet-total" class="font-bold">0 FCFA</span>
+                </div>
+                <p id="checkout-wallet-msg" class="text-xs text-center font-bold"></p>
+            </div>
+            <p class="text-[11px] text-gray-500 mt-2 text-center">Pas assez de solde ? <button onclick="openBuyerTopUp('checkout-screen')" class="text-orange-500 font-bold underline">Recharger mon portefeuille</button></p>
+        </div>
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
+            <p class="text-[11px] text-blue-700 leading-relaxed"><strong>Séquestre :</strong> votre argent est conservé par Grand Marché jusqu'à ce que vous confirmiez avoir reçu le produit. En cas de non-livraison, vous êtes remboursé automatiquement sur votre solde.</p>
+        </div>
+    </div>
+    <div class="bg-white border-t p-4 flex-shrink-0"><div class="flex justify-between mb-3 text-lg font-bold"><span>Total</span><span id="checkout-total">0 FCFA</span></div><button id="checkout-action-btn" onclick="confirmOrder()" class="w-full bg-green-600 text-white font-bold py-3 rounded-lg">Payer depuis mon portefeuille</button></div>
+</div>
+
+<!-- ===== CONFIRMATION ===== -->
+<div id="confirmation-screen" class="screen bg-white items-center justify-center p-6 hidden">
+    <div class="bg-green-100 p-6 rounded-full mb-6"><svg class="w-16 h-16 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></div>
+    <h2 class="text-2xl font-bold mb-2">Commande confirmée !</h2>
+    <p class="text-gray-500 text-center mb-6">Votre paiement est en séquestre. Il sera versé au vendeur quand vous confirmerez la réception.</p>
+    <button onclick="showScreen('buyer-profile-screen')" class="bg-orange-500 text-white font-bold py-3 px-6 rounded-lg mb-3">Voir mes commandes</button>
+    <button onclick="resetAndGoHome()" class="text-green-600 font-bold text-sm">Retour à l'accueil</button>
+</div>
+
+<!-- ===== DASHBOARD VENDEUR ===== -->
+<div id="seller-dashboard-screen" class="screen bg-gray-50 hidden">
+    <div class="bg-orange-500 text-white p-4 pt-8 flex justify-between items-center flex-shrink-0">
+        <div><p class="text-xs opacity-90">Espace vendeur</p><h1 id="dash-shop-name" class="font-bold text-lg">Ma Boutique</h1></div>
+        <button onclick="openSettings('seller-dashboard-screen')"><svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg></button>
+    </div>
+    <div class="flex-1 overflow-y-auto p-4 space-y-5 pb-4">
+        <button onclick="openCertification()" id="cert-banner" class="w-full text-left rounded-xl p-4 text-white bg-gradient-to-r from-gray-500 to-gray-600">
+            <div class="flex items-center gap-3">
+                <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+                <div class="flex-1"><p id="cert-title" class="font-bold">Non certifiée</p><p id="cert-subtitle" class="text-xs opacity-90">0 / 1000 points</p></div>
+                <span class="bg-white text-gray-800 font-bold text-xs py-1.5 px-3 rounded-full">Certifier</span>
+            </div>
+            <div class="mt-3 bg-white bg-opacity-20 rounded-full h-2"><div id="cert-progress" class="bg-white h-2 rounded-full" style="width: 0%"></div></div>
+        </button>
+
+        <button onclick="openGoldenCertification()" class="w-full text-left rounded-xl p-4 text-white bg-gradient-to-r from-yellow-500 via-amber-500 to-yellow-600 shadow">
+            <div class="flex items-center gap-3">
+                <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2l2.5 5.5L18 9l-4 4 1 6-5-3-5 3 1-6-4-4 5.5-1.5z"/></svg>
+                <div class="flex-1"><p id="gold-cert-title" class="font-bold">Golden Certif</p><p id="gold-cert-subtitle" class="text-xs opacity-90">0 / 100 000 points</p></div>
+                <span class="bg-white text-yellow-700 font-bold text-xs py-1.5 px-3 rounded-full">Voir</span>
+            </div>
+            <div class="mt-3 bg-white bg-opacity-25 rounded-full h-2"><div id="gold-cert-progress" class="bg-white h-2 rounded-full" style="width: 0%"></div></div>
+        </button>
+
+        <button onclick="openSellerSubscribers()" class="w-full text-left rounded-xl p-4 bg-white border-2 border-green-200 shadow-sm flex items-center gap-3">
+            <div class="bg-green-100 text-green-700 rounded-full w-12 h-12 flex items-center justify-center flex-shrink-0 text-2xl">👥</div>
+            <div class="flex-1">
+                <p class="font-bold text-gray-800">Mes abonnés</p>
+                <p id="dash-subscribers-count" class="text-xs text-gray-500 font-bold">0 abonné</p>
+            </div>
+            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+        </button>
+
+        <button onclick="openWallet()" class="w-full text-left rounded-xl p-4 bg-gradient-to-br from-emerald-500 to-green-700 text-white shadow">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-xs opacity-90">Mon portefeuille</p>
+                    <p id="dash-wallet-balance" class="text-2xl font-bold mt-1">0 FCFA</p>
+                    <p id="dash-wallet-pending" class="text-[10px] opacity-90 mt-1">0 FCFA en attente</p>
+                </div>
+                <div class="text-right text-[10px] opacity-90 leading-tight">
+                    <p>Retrait min. 500 FCFA</p>
+                    <p>Commission 5 %</p>
+                </div>
+            </div>
+        </button>
+        <div id="whatsapp-banner" class="bg-gray-400 text-white rounded-xl p-3 flex items-center gap-3 cursor-pointer" onclick="toggleWhatsAppConnection()">
+            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"></path></svg>
+            <div class="flex-1"><p id="wa-banner-title" class="font-bold text-sm">WhatsApp non connecté</p><p id="wa-banner-subtitle" class="text-xs opacity-90">Appuyez pour connecter</p></div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+            <div class="bg-white p-4 rounded-xl"><div class="text-gray-400 text-xs">Commandes</div><p id="stat-orders" class="text-2xl font-bold">0</p></div>
+            <div class="bg-white p-4 rounded-xl"><div class="text-gray-400 text-xs">Demandes livraison</div><p id="stat-delivery-req" class="text-2xl font-bold text-orange-500">0</p></div>
+            <div class="bg-white p-4 rounded-xl"><div class="text-gray-400 text-xs">Produits</div><p id="stat-products" class="text-2xl font-bold">0</p></div>
+            <div class="bg-white p-4 rounded-xl"><div class="text-gray-400 text-xs">Points 6★</div><p id="stat-sixstar" class="text-2xl font-bold">0</p></div>
+        </div>
+        <div class="bg-white p-4 rounded-xl">
+            <div class="flex justify-between items-center mb-3">
+                <h3 class="font-bold text-sm">Ma boutique</h3>
+                <button onclick="openEditSellerProfile()" class="text-orange-500 text-xs font-bold">Modifier profil</button>
+            </div>
+            <div class="flex justify-center mb-3"><div id="dash-logo-preview" class="bg-orange-500 text-white rounded-full w-20 h-20 flex items-center justify-center font-bold text-2xl overflow-hidden"><img id="dash-logo-img" src="" class="w-full h-full object-cover hidden"><span id="dash-logo-initials">?</span></div></div>
+            <div class="space-y-2 text-xs">
+                <div class="flex justify-between"><span class="text-gray-500">Catégorie :</span><span id="dash-category">-</span></div>
+                <div class="flex justify-between"><span class="text-gray-500">Adresse :</span><span id="dash-address">-</span></div>
+                <div class="flex justify-between"><span class="text-gray-500">Garantie :</span><span id="dash-warranty">Aucune</span></div>
+            </div>
+            <button onclick="shareOnWhatsAppShop()" class="mt-3 w-full bg-green-500 text-white font-bold py-2 rounded-lg text-sm flex items-center justify-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg>
+                Partager ma boutique
+            </button>
+            <button onclick="openMyShopQR()" class="mt-2 w-full bg-blue-500 text-white font-bold py-2 rounded-lg text-sm flex items-center justify-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"></path></svg>
+                Afficher mon QR code
+            </button>
+        </div>
+    </div>
+    <div class="bg-white border-t p-3 flex justify-between flex-shrink-0">
+        <button onclick="showScreen('seller-dashboard-screen')" class="nav-btn text-orange-500 font-bold"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg><span class="mt-1 text-[10px]">Tableau</span></button>
+        <button onclick="showScreen('seller-products-screen')" class="nav-btn text-gray-400"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg><span class="mt-1 text-[10px]">Produits</span></button>
+        <button onclick="showScreen('seller-orders-screen')" class="nav-btn text-gray-400 relative"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg><span class="mt-1 text-[10px]">Commandes</span><span id="orders-badge" class="absolute top-0 right-2 bg-red-500 text-white text-[9px] rounded-full w-4 h-4 flex items-center justify-center font-bold hidden">0</span></button>
+        <button onclick="showScreen('seller-messages-screen')" class="nav-btn text-gray-400 relative"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg><span class="mt-1 text-[10px]">Messages</span><span id="msg-badge2" class="msg-badge hidden">0</span></button>
+        <button onclick="openMyShopProfile()" class="nav-btn text-gray-400"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg><span class="mt-1 text-[10px]">Boutique</span></button>
+    </div>
+</div>
+
+<!-- ===== MES ABONNÉS (Vendeur) ===== -->
+<div id="seller-subscribers-screen" class="screen bg-gray-50 hidden">
+    <div class="bg-orange-500 text-white p-4 pt-8 flex items-center flex-shrink-0">
+        <button onclick="showScreen('seller-dashboard-screen')" class="mr-4"><svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg></button>
+        <div><h1 class="font-bold text-lg">Mes abonnés</h1><p class="text-[10px] opacity-80">Clients qui suivent votre boutique</p></div>
+    </div>
+    <div class="p-4 flex-shrink-0">
+        <div class="bg-white rounded-xl p-4 text-center border-2 border-green-200">
+            <p class="text-xs text-gray-500 font-bold uppercase">Total</p>
+            <p id="subscribers-total" class="text-4xl font-extrabold text-green-600 mt-1">0</p>
+            <p class="text-xs text-gray-500 mt-1">abonné(s)</p>
+        </div>
+    </div>
+    <div class="flex-1 overflow-y-auto p-4 pt-0">
+        <h3 class="font-bold text-sm mb-2 text-gray-700">Liste des abonnés</h3>
+        <div id="subscribers-list" class="space-y-2"></div>
+    </div>
+</div>
+
+<!-- ===== ÉDITION PROFIL VENDEUR ===== -->
+<div id="edit-seller-profile-screen" class="screen bg-white hidden">
+    <div class="bg-orange-500 text-white p-4 pt-8 flex items-center flex-shrink-0">
+        <button onclick="cancelEditSellerProfile()" class="mr-4"><svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button>
+        <div><h2 class="font-bold text-lg">Modifier mon profil</h2><p class="text-xs opacity-90">Vendeur</p></div>
+    </div>
+    <div class="flex-1 overflow-y-auto p-4 space-y-4">
+        <div class="bg-gray-50 p-3 rounded-lg">
+            <p class="text-xs font-bold text-gray-500 uppercase mb-3">Mon compte</p>
+            <div class="space-y-3">
+                <div><label class="block text-sm font-medium mb-1">Nom complet</label><input type="text" id="edit-sel-name" class="w-full border rounded-lg p-3 bg-white"></div>
+                <div><label class="block text-sm font-medium mb-1">Téléphone</label><div class="flex items-center border rounded-lg p-3 bg-white"><span class="text-gray-500 pr-2 border-r">+242</span><input type="tel" id="edit-sel-phone" class="w-full pl-3"></div></div>
+                <div><label class="block text-sm font-medium mb-1">Adresse email</label><input type="email" id="edit-sel-email" class="w-full border rounded-lg p-3 bg-white"></div>
+            </div>
+        </div>
+        <div class="bg-gray-50 p-3 rounded-lg">
+            <p class="text-xs font-bold text-gray-500 uppercase mb-3">Ma boutique</p>
+            <div class="space-y-3">
+                <div class="flex justify-center">
+                    <div class="text-center">
+                        <div class="relative inline-block">
+                            <div id="edit-shop-logo-preview" class="bg-orange-500 text-white rounded-full w-24 h-24 flex items-center justify-center font-bold text-3xl overflow-hidden border-4 border-orange-200">
+                                <img id="edit-shop-logo-img" src="" class="w-full h-full object-cover hidden"><span id="edit-shop-logo-initials">?</span>
+                            </div>
+                            <input type="file" id="edit-shop-logo-input" accept="image/*" class="hidden" onchange="handleEditShopLogoUpload(this)">
+                            <button type="button" onclick="document.getElementById('edit-shop-logo-input').click()" class="absolute -bottom-1 -right-1 bg-orange-500 text-white rounded-full p-2 shadow-lg"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg></button>
+                        </div>
+                        <p class="text-[10px] text-gray-400 mt-1">Modifier le logo</p>
+                    </div>
+                </div>
+                <div><label class="block text-sm font-medium mb-1">Nom de la boutique</label><input type="text" id="edit-sel-shop-name" class="w-full border rounded-lg p-3 bg-white"></div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">Catégorie</label>
+                    <div class="grid grid-cols-2 gap-2" id="edit-category-buttons"></div>
+                </div>
+                <div><label class="block text-sm font-medium mb-1">Adresse</label><input type="text" id="edit-sel-shop-address" class="w-full border rounded-lg p-3 bg-white"></div>
+                <div><label class="block text-sm font-medium mb-1">Description</label><textarea id="edit-sel-shop-desc" rows="2" class="w-full border rounded-lg p-3 bg-white text-sm"></textarea></div>
+                <div><label class="block text-sm font-medium mb-1">Numéro WhatsApp Business</label><div class="flex items-center border rounded-lg p-3 bg-white"><span class="text-gray-500 pr-2 border-r">+242</span><input type="tel" id="edit-sel-whatsapp" class="w-full pl-3"></div></div>
+            </div>
+        </div>
+        <div class="bg-gray-50 p-3 rounded-lg">
+            <p class="text-xs font-bold text-gray-500 uppercase mb-3">Options</p>
+            <div class="bg-white p-3 rounded-lg mb-2 flex items-center justify-between"><p class="font-bold text-sm">Proposer la livraison</p><input type="checkbox" id="edit-sel-delivery" class="w-5 h-5 accent-orange-500"></div>
+            <div class="bg-white p-3 rounded-lg flex items-center justify-between"><p class="font-bold text-sm">Paiement à la livraison</p><input type="checkbox" id="edit-sel-cod" class="w-5 h-5 accent-orange-500"></div>
+        </div>
+        <button onclick="saveSellerProfile()" class="w-full bg-orange-500 text-white font-bold py-4 rounded-lg mb-4">Enregistrer les modifications</button>
+    </div>
+</div>
+
+<!-- ===== MES PRODUITS VENDEUR ===== -->
+<div id="seller-products-screen" class="screen bg-gray-50 hidden">
+    <div class="bg-orange-500 text-white p-4 pt-8 flex justify-between items-center flex-shrink-0">
+        <h1 class="font-bold text-lg">Mes produits</h1>
+        <button onclick="resetProductForm(); showScreen('add-product-screen')" class="bg-white text-orange-500 font-bold text-sm py-1.5 px-3 rounded-full flex items-center gap-1"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>Ajouter</button>
+    </div>
+    <div class="flex-1 overflow-y-auto p-4 space-y-3" id="my-products-list"></div>
+    <div class="bg-white border-t p-3 flex justify-between flex-shrink-0">
+        <button onclick="showScreen('seller-dashboard-screen')" class="nav-btn text-gray-400"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg><span class="mt-1 text-[10px]">Tableau</span></button>
+        <button onclick="showScreen('seller-products-screen')" class="nav-btn text-orange-500 font-bold"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg><span class="mt-1 text-[10px]">Produits</span></button>
+        <button onclick="showScreen('seller-orders-screen')" class="nav-btn text-gray-400 relative"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg><span class="mt-1 text-[10px]">Commandes</span><span id="orders-badge2" class="absolute top-0 right-2 bg-red-500 text-white text-[9px] rounded-full w-4 h-4 flex items-center justify-center font-bold hidden">0</span></button>
+        <button onclick="showScreen('seller-messages-screen')" class="nav-btn text-gray-400 relative"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg><span class="mt-1 text-[10px]">Messages</span><span id="msg-badge3" class="msg-badge hidden">0</span></button>
+        <button onclick="openMyShopProfile()" class="nav-btn text-gray-400"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg><span class="mt-1 text-[10px]">Boutique</span></button>
+    </div>
+</div>
+
+<!-- ===== APERÇU PRODUIT VENDEUR ===== -->
+<div id="seller-product-preview-screen" class="screen bg-white hidden">
+    <div class="p-4 pt-8 border-b flex-shrink-0 flex items-center justify-between">
+        <button onclick="closeSellerProductPreview()"><svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button>
+        <h1 class="font-bold text-base">Aperçu du produit</h1>
+        <button onclick="deleteSellerProductFromPreview()" class="text-red-500 text-xs font-bold">Suppr.</button>
+    </div>
+    <div class="flex-1 overflow-y-auto pb-20">
+        <div class="bg-gray-50 p-4">
+            <div id="preview-main-media" class="w-full h-64 flex items-center justify-center bg-black rounded-lg overflow-hidden"></div>
+            <div id="preview-thumbnails" class="flex gap-2 mt-3 overflow-x-auto"></div>
+        </div>
+        <div class="p-5">
+            <h2 id="preview-name" class="text-xl font-bold">—</h2>
+            <p id="preview-price" class="text-2xl font-bold text-orange-500 mt-2">—</p>
+            <div class="flex items-center gap-3 mt-2 text-sm">
+                <span class="text-gray-500">Note : <span id="preview-rating">0</span>/6</span>
+                <span id="preview-stock-badge" class="text-green-600 flex items-center gap-1"><span class="w-2 h-2 bg-green-500 rounded-full"></span>En stock</span>
+            </div>
+            <div id="preview-delivery-info" class="mt-3 text-sm p-2 rounded-lg bg-gray-50"></div>
+            <div id="preview-warranty-info" class="mt-2 text-sm p-2 rounded-lg bg-green-50 border border-green-200 hidden"></div>
+            <div class="mt-5"><h3 class="font-bold mb-2">Description</h3><p id="preview-desc" class="text-sm text-gray-500">—</p></div>
+        </div>
+    </div>
+    <div class="w-full bg-white border-t p-4 flex-shrink-0"><button onclick="closeSellerProductPreview()" class="w-full bg-orange-500 text-white font-bold py-3 rounded-lg">Retour aux produits</button></div>
+</div>
+
+<!-- ===== AJOUT PRODUIT ===== -->
+<div id="add-product-screen" class="screen bg-white hidden">
+    <div class="bg-orange-500 text-white p-4 pt-8 flex items-center flex-shrink-0">
+        <button onclick="showScreen('seller-products-screen')" class="mr-4"><svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button>
+        <h1 class="font-bold text-lg">Nouveau produit</h1>
+    </div>
+    <div class="flex-1 overflow-y-auto p-4 space-y-4">
+        <div>
+            <label class="block text-sm font-medium mb-2">Photos du produit <span class="text-gray-400 font-normal">(plusieurs possibles)</span></label>
+            <div id="prod-photo-gallery" class="grid grid-cols-3 gap-2 mb-2"></div>
+            <input type="file" id="prod-photo-input" accept="image/*" multiple class="hidden" onchange="handleProductPhotosUpload(this)">
+            <button type="button" onclick="document.getElementById('prod-photo-input').click()" class="w-full border-2 border-dashed border-gray-300 rounded-lg p-3 text-sm text-gray-500 flex items-center justify-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>Ajouter une photo
+            </button>
+            <div class="flex justify-between mt-1">
+                <button type="button" onclick="promptProductUrl()" class="text-[10px] text-orange-500 font-bold">Ou entrer un lien d'image</button>
+                <p class="text-[10px] text-gray-400">Max 15 Mo par image</p>
+            </div>
+        </div>
+        <div><label class="block text-sm font-medium mb-1">Nom du produit</label><input type="text" id="prod-name" class="w-full border rounded-lg p-3"></div>
+        <div>
+            <label class="block text-sm font-medium mb-1">Catégorie</label>
+            <select id="prod-category" class="w-full border rounded-lg p-3 bg-white" onchange="onProductCategoryChange()"></select>
+            <input type="text" id="prod-category-custom" placeholder="Précisez la catégorie..." class="w-full border rounded-lg p-3 mt-2 hidden">
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+            <div><label class="block text-sm font-medium mb-1">Prix (FCFA)</label><input type="number" id="prod-price" class="w-full border rounded-lg p-3"></div>
+            <div><label class="block text-sm font-medium mb-1">Stock</label><input type="number" id="prod-stock" class="w-full border rounded-lg p-3"></div>
+        </div>
+        <div><label class="block text-sm font-medium mb-1">Description</label><textarea id="prod-desc" rows="3" class="w-full border rounded-lg p-3"></textarea></div>
+        <div class="bg-orange-50 border-2 border-orange-200 rounded-lg p-3">
+            <p class="font-bold text-sm mb-1 text-orange-800">Mode de récupération <span class="text-red-500">*</span></p>
+            <p class="text-[10px] text-orange-700 mb-3">Obligatoire — comment le client récupère cet article ?</p>
+            <div class="space-y-2">
+                <div id="prod-delivery-home" onclick="selectProductDelivery('home')" class="border-2 border-gray-200 rounded-lg p-3 cursor-pointer flex items-center gap-3 bg-white">
+                    <div class="bg-green-100 p-2 rounded-full"><svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg></div>
+                    <div class="flex-1"><p class="font-bold text-sm">Livraison disponible</p><p class="text-[10px] text-gray-500">Frais à négocier dans le chat</p></div>
+                </div>
+                <div id="prod-delivery-pickup" onclick="selectProductDelivery('pickup')" class="border-2 border-gray-200 rounded-lg p-3 cursor-pointer flex items-center gap-3 bg-white">
+                    <div class="bg-blue-100 p-2 rounded-full"><svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg></div>
+                    <div class="flex-1"><p class="font-bold text-sm">Retrait en boutique uniquement</p><p class="text-[10px] text-gray-500">Pas de livraison possible</p></div>
+                </div>
+            </div>
+            <input type="hidden" id="prod-delivery-mode" value="">
+        </div>
+        <div class="bg-green-50 border-2 border-green-200 rounded-lg p-3">
+            <div class="flex items-center justify-between mb-2">
+                <div>
+                    <p class="font-bold text-sm text-green-800">Proposer une garantie</p>
+                    <p class="text-[10px] text-green-700">Pour ce produit uniquement</p>
+                </div>
+                <input type="checkbox" id="prod-warranty" onchange="toggleProductWarranty()" class="w-5 h-5 accent-green-600">
+            </div>
+            <div id="prod-warranty-fields" class="hidden space-y-2">
+                <select id="prod-warranty-preset" onchange="onWarrantyPresetChange()" class="w-full border rounded-lg p-2 text-sm bg-white">
+                    <option value="">-- Choisir une garantie --</option>
+                    <option value="7 jours satisfait ou remboursé">7 jours satisfait ou remboursé</option>
+                    <option value="14 jours satisfait ou remboursé">14 jours satisfait ou remboursé</option>
+                    <option value="30 jours satisfait ou remboursé">30 jours satisfait ou remboursé</option>
+                    <option value="Garantie constructeur 3 mois">Garantie constructeur 3 mois</option>
+                    <option value="Garantie constructeur 6 mois">Garantie constructeur 6 mois</option>
+                    <option value="Garantie constructeur 12 mois">Garantie constructeur 12 mois</option>
+                    <option value="Garantie pièces et main d'oeuvre 6 mois">Garantie pièces et main d'oeuvre 6 mois</option>
+                    <option value="__custom__">Autre (préciser)</option>
+                </select>
+                <input type="text" id="prod-warranty-custom" placeholder="Décrivez la garantie en quelques mots..." maxlength="80" class="w-full border rounded-lg p-2 text-sm hidden">
+                <p id="prod-warranty-hint" class="text-[10px] text-gray-500">Sélectionnez une garantie standard ou créez la vôtre (max 80 caractères).</p>
+            </div>
+        </div>
+        <button onclick="publishProduct()" class="w-full bg-orange-500 text-white font-bold py-4 rounded-lg mb-4">Publier le produit</button>
+    </div>
+</div>
+
+<!-- ===== COMMANDES VENDEUR ===== -->
+<div id="seller-orders-screen" class="screen bg-gray-50 hidden">
+    <div class="bg-orange-500 text-white p-4 pt-8 flex-shrink-0"><h1 class="font-bold text-lg">Commandes reçues</h1></div>
+    <div class="flex-1 overflow-y-auto p-4 space-y-3" id="seller-orders-list"></div>
+    <div class="bg-white border-t p-3 flex justify-between flex-shrink-0">
+        <button onclick="showScreen('seller-dashboard-screen')" class="nav-btn text-gray-400"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg><span class="mt-1 text-[10px]">Tableau</span></button>
+        <button onclick="showScreen('seller-products-screen')" class="nav-btn text-gray-400"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg><span class="mt-1 text-[10px]">Produits</span></button>
+        <button onclick="showScreen('seller-orders-screen')" class="nav-btn text-orange-500 font-bold relative"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg><span class="mt-1 text-[10px]">Commandes</span><span id="orders-badge3" class="absolute top-0 right-2 bg-red-500 text-white text-[9px] rounded-full w-4 h-4 flex items-center justify-center font-bold hidden">0</span></button>
+        <button onclick="showScreen('seller-messages-screen')" class="nav-btn text-gray-400 relative"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg><span class="mt-1 text-[10px]">Messages</span><span id="msg-badge4" class="msg-badge hidden">0</span></button>
+        <button onclick="openMyShopProfile()" class="nav-btn text-gray-400"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg><span class="mt-1 text-[10px]">Boutique</span></button>
+    </div>
+</div>
+
+<!-- ===== PROFIL BOUTIQUE ===== -->
+<div id="shop-profile-screen" class="screen bg-gray-50 hidden">
+    <div class="bg-green-800 text-white p-4 pt-8 flex items-center justify-between flex-shrink-0">
+        <button onclick="closeShopProfile()"><svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button>
+        <h1 class="font-bold text-lg">Boutique</h1>
+        <button onclick="openReportShop()" class="text-red-300"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg></button>
+    </div>
+    <div class="flex-1 overflow-y-auto">
+        <div class="bg-white p-4 border-b">
+            <div class="flex items-center gap-4">
+                <div id="profile-logo" class="bg-green-600 text-white rounded-full w-16 h-16 flex items-center justify-center font-bold text-2xl overflow-hidden">
+                    <img id="profile-logo-img" src="" class="w-full h-full object-cover hidden"><span id="profile-logo-initials">CM</span>
+                </div>
+                <div class="flex-1">
+                    <h2 id="profile-shop-name" class="font-bold">Boutique</h2>
+                    <p id="profile-shop-category" class="text-xs text-gray-500">-</p>
+                    <div class="flex gap-3 mt-1 text-xs"><span id="profile-product-count">0 Produits</span><span id="profile-reviews-count">0 Avis</span><span id="profile-subscribers-count">0 Abonnés</span></div>
+                </div>
+            </div>
+            <div class="flex gap-2 mt-4">
+                <button id="follow-btn" onclick="toggleFollow()" class="flex-1 bg-green-600 text-white font-bold py-2 rounded-lg text-sm">Suivre</button>
+                <button id="contact-seller-btn" onclick="contactSeller()" class="flex-1 bg-orange-500 text-white font-bold py-2 rounded-lg text-sm flex items-center justify-center gap-1">Contacter</button>
+            </div>
+            <button onclick="openShopQR()" class="mt-2 w-full bg-green-50 border border-green-500 text-green-700 font-bold py-2 rounded-lg text-sm flex items-center justify-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"></path></svg>
+                Voir le QR code de la boutique
+            </button>
+        </div>
+        <div class="bg-white p-4 mt-2">
+            <h3 class="font-bold mb-3">Évaluations</h3>
+            <div class="flex items-center gap-4 mb-4 pb-4 border-b">
+                <div class="text-center"><p id="profile-global-rating" class="text-3xl font-bold">0</p><div id="profile-global-stars" class="text-yellow-400 text-xs"></div><p class="text-[10px] text-gray-500">sur 6</p></div>
+                <div class="flex-1 text-xs text-gray-500">Basée sur <strong id="profile-reviews-strong">0</strong></div>
+            </div>
+            <div class="mb-3"><div class="flex justify-between text-xs mb-1"><span>Livraison</span><span id="crit-delivery-val">-/6</span></div><div class="bg-gray-100 rounded-full h-2"><div id="crit-delivery-bar" class="bg-orange-500 h-2 rounded-full" style="width:0%"></div></div></div>
+            <div class="mb-3"><div class="flex justify-between text-xs mb-1"><span>Qualité</span><span id="crit-quality-val">-/6</span></div><div class="bg-gray-100 rounded-full h-2"><div id="crit-quality-bar" class="bg-blue-500 h-2 rounded-full" style="width:0%"></div></div></div>
+            <div><div class="flex justify-between text-xs mb-1"><span>Comportement</span><span id="crit-behavior-val">-/6</span></div><div class="bg-gray-100 rounded-full h-2"><div id="crit-behavior-bar" class="bg-green-500 h-2 rounded-full" style="width:0%"></div></div></div>
+        </div>
+        <div class="bg-white p-4 mt-2">
+            <div class="flex justify-between items-center mb-3"><h3 class="font-bold">Articles</h3><span id="articles-count" class="text-xs text-gray-500">0 produits</span></div>
+            <div id="shop-articles-list" class="grid grid-cols-2 gap-3"></div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== QR CODE BOUTIQUE ===== -->
+<div id="shop-qr-screen" class="screen bg-white hidden">
+    <div class="bg-green-800 text-white p-4 pt-8 flex items-center justify-between flex-shrink-0">
+        <button onclick="closeShopQR()" class="mr-4"><svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button>
+        <h1 class="font-bold text-lg">QR Code boutique</h1>
+        <button onclick="shareShopQR()" class="text-orange-300 text-xs font-bold">Partager</button>
+    </div>
+    <div class="flex-1 overflow-y-auto p-6 flex flex-col items-center">
+        <div id="shop-qr-container" class="bg-white p-4 rounded-2xl shadow-lg border-4 border-green-100"></div>
+        <h2 id="qr-shop-name" class="font-bold text-lg mt-5 text-center text-gray-800"></h2>
+        <p id="qr-shop-category" class="text-sm text-gray-500 text-center"></p>
+        <div class="mt-5 w-full max-w-xs bg-gray-50 rounded-lg p-3">
+            <p class="text-[10px] text-gray-400 uppercase font-bold mb-1">Lien de la boutique</p>
+            <p class="text-[10px] text-gray-600 text-center break-all" id="qr-shop-url"></p>
+        </div>
+        <button onclick="shareShopQR()" class="mt-6 w-full max-w-xs bg-green-600 text-white font-bold py-3 rounded-lg flex items-center justify-center gap-2">Partager</button>
+        <button onclick="downloadShopQR()" class="mt-3 w-full max-w-xs bg-orange-500 text-white font-bold py-3 rounded-lg">Télécharger le QR</button>
+    </div>
+</div>
+
+<!-- ===== CERTIFICATION ===== -->
+<div id="certification-screen" class="screen bg-gray-50 hidden">
+    <div class="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4 pt-8 flex items-center flex-shrink-0">
+        <button onclick="closeCertification()" class="mr-4"><svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button>
+        <div><h1 class="font-bold text-lg">Certification</h1><p class="text-xs opacity-90">Devenez une boutique de confiance</p></div>
+    </div>
+    <div class="flex-1 overflow-y-auto p-4 space-y-4">
+        <div class="bg-white p-4 rounded-xl">
+            <div class="flex items-center gap-3 mb-3">
+                <div class="bg-orange-100 p-2 rounded-full"><svg class="w-5 h-5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.196-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.783-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path></svg></div>
+                <div><h3 class="font-bold text-sm">Option 1 : Gratuite</h3><p class="text-xs text-gray-500">1 à 3 points par avis selon les 6★ reçus</p></div>
+            </div>
+            <div class="bg-gray-100 rounded-full h-3 mb-2"><div id="cert-modal-progress" class="bg-orange-500 h-3 rounded-full" style="width:0%"></div></div>
+            <p id="cert-modal-status" class="text-xs text-gray-500 text-center">0 / 1000 points</p>
+        </div>
+        <div class="bg-white p-4 rounded-xl border-2 border-blue-500">
+            <div class="flex items-center gap-3 mb-3">
+                <div class="bg-blue-100 p-2 rounded-full"><svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg></div>
+                <div class="flex-1"><h3 class="font-bold text-sm">Option 2 : Payante</h3><p class="text-xs text-gray-500">Certification immédiate</p></div>
+                <span class="text-lg font-bold text-blue-600">30 000 FCFA</span>
+            </div>
+            <p class="text-xs text-gray-500 mb-3">Payez une fois et votre boutique sera certifiée immédiatement.</p>
+            <p class="text-xs text-gray-500">Paiement par MTN Mobile Money ou Airtel Money.</p>
+                    </div>
+        <div class="bg-green-50 border border-green-200 rounded-lg p-3"><p class="text-xs text-green-700"><strong>Avantages :</strong> Badge bleu de confiance, mise en avant dans les recherches, plus de clients.</p></div>
+    </div>
+    <div class="bg-white border-t p-4 flex-shrink-0"><button onclick="payCertification()" class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg">Payer 30 000 FCFA</button></div>
+</div>
+
+<!-- ===== GOLDEN CERTIF ===== -->
+<div id="gold-certification-screen" class="screen bg-gray-50 hidden">
+    <div class="bg-gradient-to-r from-yellow-500 to-amber-600 text-white p-4 pt-8 flex items-center flex-shrink-0">
+        <button onclick="showScreen('seller-dashboard-screen')" class="mr-4"><svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg></button>
+        <div><h1 class="font-bold text-lg">Golden Certif</h1><p class="text-xs opacity-90">Le plus haut niveau de confiance</p></div>
+    </div>
+    <div class="flex-1 overflow-y-auto p-4 space-y-4">
+        <div class="bg-gradient-to-br from-yellow-400 to-amber-500 rounded-2xl p-5 text-white text-center shadow-lg">
+            <svg class="w-16 h-16 mx-auto" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2l2.5 5.5L18 9l-4 4 1 6-5-3-5 3 1-6-4-4 5.5-1.5z"/></svg>
+            <p class="font-bold text-lg mt-2">Badge Golden</p>
+            <p class="text-xs opacity-90 mt-1">Attribué automatiquement à 100 000 avis 6★</p>
+        </div>
+        <div class="bg-white p-4 rounded-xl">
+            <div class="flex justify-between items-center mb-2">
+                <p class="font-bold text-sm">Progression</p>
+                <p id="gold-progress-label" class="text-xs text-gray-500">0 / 100 000</p>
+            </div>
+            <div class="bg-gray-100 rounded-full h-3 mb-2"><div id="gold-progress-bar" class="bg-gradient-to-r from-yellow-500 to-amber-500 h-3 rounded-full" style="width:0%"></div></div>
+            <p class="text-xs text-gray-500">Chaque critère noté 6★ = 1 point.</p>
+        </div>
+        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+            <p class="text-xs text-yellow-800"><strong>Avantages Golden :</strong> Badge doré, mise en avant maximale, accès prioritaire aux campagnes, taux de conversion supérieur.</p>
+        </div>
+    </div>
+</div>
+
+<!-- ===== SIGNALEMENT ===== -->
+<div id="report-screen" class="screen bg-white hidden">
+    <div class="bg-red-500 text-white p-4 pt-8 flex items-center flex-shrink-0">
+        <button onclick="closeReport()" class="mr-4"><svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button>
+        <div><h1 class="font-bold text-lg">Signaler</h1><p class="text-xs opacity-90">Aidez-nous à lutter contre les arnaques</p></div>
+    </div>
+    <div class="flex-1 overflow-y-auto p-4 space-y-4">
+        <div class="bg-red-50 border border-red-200 rounded-lg p-3"><p class="text-xs text-red-700">Vous êtes sur le point de signaler <strong id="report-target-name">cette personne</strong>.</p></div>
+        <div>
+            <p class="text-sm font-bold mb-2">Type de signalement</p>
+            <div class="space-y-2" id="report-type-list">
+                <button onclick="selectReportType('Arnaque', this)" class="report-type-btn w-full text-left border-2 border-gray-200 rounded-lg p-3 text-sm">Arnaque / Escroquerie</button>
+                <button onclick="selectReportType('Produit non conforme', this)" class="report-type-btn w-full text-left border-2 border-gray-200 rounded-lg p-3 text-sm">Produit non conforme</button>
+                <button onclick="selectReportType('Comportement inapproprié', this)" class="report-type-btn w-full text-left border-2 border-gray-200 rounded-lg p-3 text-sm">Comportement inapproprié</button>
+                <button onclick="selectReportType('Non livraison', this)" class="report-type-btn w-full text-left border-2 border-gray-200 rounded-lg p-3 text-sm">Non livraison</button>
+                <button onclick="selectReportType('Client n\'a pas confirmé la réception', this)" class="report-type-btn w-full text-left border-2 border-gray-200 rounded-lg p-3 text-sm">Client n'a pas confirmé la réception</button>
+                <button onclick="selectReportType('Autre', this)" class="report-type-btn w-full text-left border-2 border-gray-200 rounded-lg p-3 text-sm">Autre</button>
+            </div>
+        </div>
+        <div><label class="block text-sm font-medium mb-1">Détails (optionnel)</label><textarea id="report-details" rows="4" placeholder="Décrivez..." class="w-full border rounded-lg p-3 text-sm"></textarea></div>
+    </div>
+    <div class="bg-white border-t p-4 flex-shrink-0"><button onclick="submitReport()" class="w-full bg-red-500 text-white font-bold py-3 rounded-lg">Envoyer le signalement</button></div>
+</div>
+
+<!-- ===== CONDITIONS D'UTILISATION ===== -->
+<div id="terms-acceptance-screen" class="screen bg-white hidden">
+    <div class="bg-green-800 text-white p-4 pt-8 flex items-center flex-shrink-0">
+        <button onclick="cancelTermsAcceptance()" class="mr-4"><svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button>
+        <h1 class="font-bold text-lg">Conditions d'utilisation</h1>
+    </div>
+    <div id="terms-body-content" class="flex-1 overflow-y-auto p-5 space-y-4 text-sm text-gray-600">
+        <div class="bg-gradient-to-r from-green-700 to-green-600 rounded-xl p-4 text-white">
+            <h2 class="text-base font-bold mb-1">Conditions Générales d'Utilisation</h2>
+            <p class="text-[11px] opacity-90">Version 4.0</p>
+        </div>
+        <div class="bg-amber-50 border-l-4 border-amber-400 rounded-lg p-3">
+            <p class="font-bold text-amber-800 text-xs mb-1">Résumé</p>
+            <ul class="text-[11px] text-amber-800 space-y-0.5 list-disc list-inside">
+                <li>Grand Marché est une plateforme de mise en relation, pas un vendeur</li>
+                <li>Le vendeur est seul responsable de ses produits</li>
+                <li>L'argent du client est conservé en séquestre jusqu'à confirmation de réception</li>
+                <li>Le vendeur accepte la commande en premier</li>
+                <li>Le stock est décrémenté automatiquement à chaque achat</li>
+                <li><strong>Toutes les conversations sont conservées par Grand Marché</strong></li>
+            </ul>
+        </div>
+        <div class="bg-white rounded-xl p-4 border-l-4 border-green-600">
+            <h3 class="font-bold text-gray-800 mb-2">1. Objet et acceptation</h3>
+            <p class="text-xs leading-relaxed">Grand Marché est une marketplace congolaise qui met en relation des vendeurs locaux et des acheteurs.</p>
+        </div>
+        <div class="bg-white rounded-xl p-4 border-l-4 border-orange-500">
+            <h3 class="font-bold text-gray-800 mb-2">2. Stock et garantie</h3>
+            <ul class="text-xs space-y-1 list-disc list-inside leading-relaxed">
+                <li>Le stock est mis à jour automatiquement après chaque achat</li>
+                <li>Un produit en rupture ne peut plus être commandé</li>
+                <li>Les garanties proposées doivent être sélectionnées dans la liste officielle</li>
+                <li>Toute garantie abusive ou trompeuse entraîne la suspension de la boutique</li>
+            </ul>
+        </div>
+        <div class="bg-white rounded-xl p-4 border-l-4 border-emerald-500">
+            <h3 class="font-bold text-gray-800 mb-2">3. Séquestre et acceptation</h3>
+            <ul class="text-xs space-y-1 list-disc list-inside leading-relaxed">
+                <li>L'acheteur dispose d'un portefeuille retraçant les fonds en séquestre, les dépenses et les remboursements</li>
+                <li><strong>Le vendeur doit d'abord accepter la commande</strong> pour que la livraison soit organisée</li>
+                <li>L'argent est libéré au vendeur quand acheteur ET vendeur confirment la réception</li>
+                <li>Retrait minimum vendeur : 500 FCFA · Commission : 5 %</li>
+            </ul>
+        </div>
+        <div class="bg-white rounded-xl p-4 border-l-4 border-blue-500">
+            <h3 class="font-bold text-gray-800 mb-2">4. Messagerie — surveillance & preuve</h3>
+            <ul class="text-xs space-y-1 list-disc list-inside leading-relaxed">
+                <li><strong>Tous les messages échangés sur Grand Marché sont accessibles à l'application</strong>, conservés et horodatés</li>
+                <li>En cas d'arnaque, de fraude, de menaces ou de toute autre infraction, Grand Marché peut transmettre ces messages aux autorités compétentes</li>
+                <li>Les utilisateurs s'engagent à ne pas tenir de propos illégaux</li>
+                <li>Seul l'acheteur peut accepter ou refuser un accord produit dans le chat</li>
+            </ul>
+        </div>
+        <div class="bg-white rounded-xl p-4 border-l-4 border-purple-500">
+            <h3 class="font-bold text-gray-800 mb-2">5. QR code boutique</h3>
+            <p class="text-xs leading-relaxed">Chaque boutique dispose d'un QR code unique permettant aux clients d'y accéder directement.</p>
+        </div>
+        <div class="bg-white rounded-xl p-4 border-l-4 border-red-500">
+            <h3 class="font-bold text-gray-800 mb-2">6. Signalements croisés</h3>
+            <p class="text-xs leading-relaxed">Les acheteurs peuvent signaler les vendeurs, et les vendeurs peuvent signaler les acheteurs (par exemple en cas de non-confirmation de réception, de fausses déclarations, de menaces, etc.).</p>
+        </div>
+        <div class="bg-green-50 border border-green-200 rounded-xl p-4">
+            <p class="font-bold text-green-800 text-xs mb-1">Contact & Support</p>
+            <p class="text-[11px] text-green-700">WhatsApp : <strong>+242 06 842 89 67</strong></p>
+            <p class="text-[11px] text-green-700">Email : <strong>support@grandmarche.cg</strong></p>
+            <p class="text-[11px] text-green-700">Brazzaville, République du Congo</p>
+        </div>
+    </div>
+    <div class="bg-white border-t p-4 flex-shrink-0 space-y-3">
+        <label class="flex items-start gap-3 cursor-pointer">
+            <input type="checkbox" id="terms-checkbox" onchange="onTermsCheckboxChange()" class="w-5 h-5 accent-green-600 mt-0.5">
+            <span class="text-sm text-gray-700">J'ai lu et j'accepte les conditions d'utilisation de Grand Marché</span>
+        </label>
+        <button id="terms-accept-btn" onclick="acceptTerms()" disabled class="w-full bg-gray-300 text-white font-bold py-3 rounded-lg cursor-not-allowed">Accepter et continuer</button>
+        <button onclick="cancelTermsAcceptance()" class="w-full text-gray-500 font-bold py-2 text-sm">Annuler</button>
+    </div>
+</div>
+
+<!-- ===== WALLET VENDEUR ===== -->
+<div id="wallet-screen" class="screen bg-gray-50 hidden">
+    <div class="bg-green-800 text-white p-4 pt-8 flex items-center flex-shrink-0">
+        <button onclick="showScreen('seller-dashboard-screen')" class="mr-4"><svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button>
+        <h1 class="font-bold text-lg">Mon portefeuille</h1>
+    </div>
+    <div class="p-4 flex-shrink-0">
+        <div class="bg-gradient-to-br from-emerald-500 to-green-700 rounded-2xl p-5 text-white shadow-lg">
+            <p class="text-xs opacity-90">Solde disponible</p>
+            <p id="wallet-balance" class="text-3xl font-bold mt-1">0 FCFA</p>
+            <p id="wallet-pending" class="text-[11px] opacity-90 mt-2">0 FCFA en attente</p>
+            <div class="mt-4 flex justify-between items-center text-[10px] opacity-90">
+                <span>Retrait min. 500 FCFA</span>
+                <span>Commission 5 %</span>
+            </div>
+        </div>
+        <button onclick="openWithdraw()" class="mt-4 w-full bg-orange-500 text-white font-bold py-3 rounded-lg">Retirer de l'argent</button>
+    </div>
+    <div class="flex-1 overflow-y-auto p-4 pt-0">
+        <h3 class="font-bold text-sm mb-2 text-gray-700">Historique</h3>
+        <div id="wallet-history" class="space-y-2"></div>
+    </div>
+</div>
+
+<!-- ===== RETRAIT VENDEUR ===== -->
+<div id="withdraw-screen" class="screen bg-white hidden">
+    <div class="bg-green-800 text-white p-4 pt-8 flex items-center flex-shrink-0">
+        <button onclick="showScreen('wallet-screen')" class="mr-4"><svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button>
+        <h1 class="font-bold text-lg">Retirer de l'argent</h1>
+    </div>
+    <div class="flex-1 overflow-y-auto p-5 space-y-4">
+        <div class="bg-gray-50 rounded-xl p-4">
+            <p class="text-xs text-gray-500">Solde disponible</p>
+            <p id="withdraw-balance" class="text-2xl font-bold text-gray-800 mt-1">0 FCFA</p>
+        </div>
+        <div>
+            <div class="flex items-center justify-between mb-1">
+                <label class="block text-sm font-medium text-gray-700">Montant à retirer (FCFA)</label>
+                <button onclick="withdrawAll()" class="text-xs text-green-600 font-bold underline">Tout retirer</button>
+            </div>
+            <input type="number" id="withdraw-amount" oninput="updateWithdrawPreview()" placeholder="Minimum 500" class="w-full border rounded-lg p-3 text-lg font-bold">
+            <p id="withdraw-error" class="text-xs text-red-500 mt-1 hidden"></p>
+        </div>
+        <div class="bg-gray-50 rounded-xl p-4 space-y-2">
+            <div class="flex justify-between text-sm"><span class="text-gray-500">Montant demandé</span><span id="wd-amount-preview" class="font-bold">0 FCFA</span></div>
+            <div class="flex justify-between text-sm"><span class="text-gray-500">Commission (5 %)</span><span id="wd-commission-preview" class="font-bold text-orange-500">- 0 FCFA</span></div>
+            <div class="flex justify-between text-sm pt-2 border-t"><span class="text-gray-700 font-bold">Vous recevez</span><span id="wd-net-preview" class="font-bold text-green-600 text-lg">0 FCFA</span></div>
+        </div>
+        <div>
+            <p class="text-sm font-medium mb-2">Moyen de retrait</p>
+            <div class="space-y-2">
+                <div onclick="selectWithdrawMethod('mobile')" id="wd-method-mobile" class="border-2 border-green-500 rounded-xl p-3 cursor-pointer flex items-center gap-3 bg-green-50">
+                    <div class="bg-yellow-500 p-2 rounded-full w-9 h-9 flex items-center justify-center text-white font-bold text-[10px]">MoMo</div>
+                    <p class="font-bold text-sm flex-1">Mobile Money</p>
+                </div>
+                <div onclick="selectWithdrawMethod('airtel')" id="wd-method-airtel" class="border-2 border-gray-200 rounded-xl p-3 cursor-pointer flex items-center gap-3">
+                    <div class="bg-red-500 p-2 rounded-full w-9 h-9 flex items-center justify-center text-white font-bold text-[10px]">AM</div>
+                    <p class="font-bold text-sm flex-1">Airtel Money</p>
+                </div>
+                <div onclick="selectWithdrawMethod('card')" id="wd-method-card" class="border-2 border-gray-200 rounded-xl p-3 cursor-pointer flex items-center gap-3">
+                    <div class="bg-blue-500 p-2 rounded-full w-9 h-9 flex items-center justify-center text-white"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg></div>
+                    <p class="font-bold text-sm flex-1">Carte bancaire</p>
+                </div>
+            </div>
+        </div>
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
+            <p class="text-[11px] text-blue-700 leading-relaxed">Une commission de <strong>5 %</strong> est retenue sur chaque retrait.</p>
+        </div>
+    </div>
+    <div class="bg-white border-t p-4 flex-shrink-0">
+        <button onclick="confirmWithdrawal()" class="w-full bg-orange-500 text-white font-bold py-3 rounded-lg">Confirmer le retrait</button>
+    </div>
+</div>
+
+<!-- ===== ÉCRAN DE PAIEMENT ===== -->
+<div id="payment-flow-screen" class="screen bg-white hidden">
+    <div class="bg-green-800 text-white p-4 pt-8 flex items-center flex-shrink-0">
+        <button onclick="cancelPaymentFlow()" class="mr-4"><svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button>
+        <h1 id="payment-flow-title" class="font-bold text-lg">Paiement</h1>
+    </div>
+    <div class="flex-1 overflow-y-auto p-5 space-y-4">
+        <div class="bg-gradient-to-r from-green-700 to-green-600 rounded-xl p-4 text-white">
+            <p class="text-xs opacity-90">Montant à payer</p>
+            <p id="payment-amount" class="text-2xl font-bold mt-1">0 FCFA</p>
+            <p id="payment-recipient" class="text-[11px] opacity-90 mt-1">—</p>
+            <p class="text-[10px] opacity-80 mt-2">Montant conservé en séquestre jusqu'à confirmation de réception</p>
+        </div>
+        <div id="payment-step-mobile" class="hidden space-y-4">
+            <div class="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
+                <p class="font-bold text-yellow-800 text-sm mb-2">Comment ça marche ?</p>
+                <ol class="text-xs text-yellow-700 leading-relaxed space-y-1 list-decimal list-inside">
+                    <li>Appuyez sur le bouton ci-dessous</li>
+                    <li>MTN vous envoie une notification sur votre téléphone</li>
+                    <li>Saisissez votre <strong>code secret Mobile Money</strong></li>
+                    <li>MTN valide et votre argent part en séquestre Grand Marché</li>
+                </ol>
+            </div>
+            <div class="bg-gray-50 rounded-xl p-3"><p class="text-[11px] text-gray-600">Numéro à débiter : <strong>+242 <span id="payment-phone-momo">...</span></strong></p></div>
+            <button onclick="initiateMobileMoney()" class="w-full bg-yellow-500 text-white font-bold py-3 rounded-lg">Confirmer et recevoir la notification</button>
+        </div>
+        <div id="payment-step-airtel" class="hidden space-y-4">
+            <div class="bg-red-50 border border-red-200 rounded-xl p-4">
+                <p class="font-bold text-red-800 text-sm mb-2">Comment ça marche ?</p>
+                <ol class="text-xs text-red-700 leading-relaxed space-y-1 list-decimal list-inside">
+                    <li>Appuyez sur le bouton ci-dessous</li>
+                    <li>Airtel vous envoie une notification</li>
+                    <li>Saisissez votre <strong>code secret Airtel Money</strong></li>
+                    <li>Airtel valide et votre argent part en séquestre Grand Marché</li>
+                </ol>
+            </div>
+            <div class="bg-gray-50 rounded-xl p-3"><p class="text-[11px] text-gray-600">Numéro à débiter : <strong>+242 <span id="payment-phone-airtel">...</span></strong></p></div>
+            <button onclick="initiateAirtelMoney()" class="w-full bg-red-500 text-white font-bold py-3 rounded-lg">Confirmer et recevoir la notification</button>
+        </div>
+        <div id="payment-step-card" class="hidden space-y-4">
+            <div class="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                <p class="font-bold text-blue-800 text-sm mb-1">Paiement par carte bancaire</p>
+                <p class="text-xs text-blue-700 leading-relaxed">Renseignez les informations de votre carte puis validez avec votre code 3D Secure.</p>
+            </div>
+            <div><label class="block text-sm font-medium text-gray-700 mb-1">Numéro de carte</label><input type="text" id="card-number" inputmode="numeric" maxlength="19" placeholder="1234 5678 9012 3456" class="w-full border rounded-lg p-3 tracking-widest"></div>
+            <div class="grid grid-cols-2 gap-3">
+                <div><label class="block text-sm font-medium text-gray-700 mb-1">Expiration</label><input type="text" id="card-expiry" inputmode="numeric" maxlength="5" placeholder="MM/AA" class="w-full border rounded-lg p-3 text-center"></div>
+                <div><label class="block text-sm font-medium text-gray-700 mb-1">CVV</label><input type="password" id="card-cvv" inputmode="numeric" maxlength="4" placeholder="123" class="w-full border rounded-lg p-3 text-center"></div>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Code confidentiel 3D Secure</label>
+                <input type="password" id="card-pin" inputmode="numeric" maxlength="6" placeholder="••••••" class="w-full border rounded-lg p-3 text-center text-xl tracking-widest font-bold">
+            </div>
+            <button onclick="confirmCardPayment()" class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg">Payer par carte</button>
+        </div>
+    </div>
+</div>
+
+<!-- ===== TICKET DE CAISSE ===== -->
+<div id="receipt-screen" class="screen bg-gray-100 hidden">
+    <div class="bg-green-800 text-white p-4 pt-8 flex items-center justify-between flex-shrink-0">
+        <button onclick="closeReceipt()" class="mr-4"><svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button>
+        <h1 class="font-bold text-lg">Ticket de caisse</h1>
+        <button onclick="deleteReceipt()" class="text-red-300 text-xs font-bold">Supprimer</button>
+    </div>
+    <div class="flex-1 overflow-y-auto p-4 pb-6">
+        <div id="receipt-content" class="bg-white rounded-2xl shadow-lg overflow-hidden">
+            <div class="bg-gradient-to-r from-green-700 to-green-600 text-white p-4 text-center">
+                <p class="text-[10px] uppercase opacity-90">Reçu officiel</p>
+                <p class="font-bold text-lg mt-1">Grand Marché</p>
+                <p class="text-[10px] opacity-90 mt-0.5">Brazzaville, République du Congo</p>
+            </div>
+            <div class="p-4 space-y-3" style="font-family: 'Courier New', monospace;">
+                <div class="text-center border-b border-dashed border-gray-300 pb-3">
+                    <p id="tkt-ref" class="font-bold text-sm">TKT-XXXX</p>
+                    <p id="tkt-date" class="text-[11px] text-gray-500 mt-1">—</p>
+                    <p id="tkt-expiry" class="text-[10px] text-orange-500 mt-0.5">—</p>
+                </div>
+                <div class="text-xs space-y-1">
+                    <div class="flex justify-between"><span class="text-gray-500">Boutique</span><span id="tkt-shop" class="font-bold text-right">—</span></div>
+                    <div class="flex justify-between"><span class="text-gray-500">Client</span><span id="tkt-buyer" class="font-bold text-right">—</span></div>
+                    <div class="flex justify-between"><span class="text-gray-500">Téléphone</span><span id="tkt-phone" class="font-bold text-right">—</span></div>
+                    <div class="flex justify-between"><span class="text-gray-500">Paiement</span><span id="tkt-payment" class="font-bold text-right">—</span></div>
+                    <div class="flex justify-between"><span class="text-gray-500">Livraison</span><span id="tkt-delivery" class="font-bold text-right">—</span></div>
+                </div>
+                <div class="border-t border-dashed border-gray-300 pt-3">
+                    <p class="text-[10px] text-gray-400 uppercase mb-2">Articles</p>
+                    <div id="tkt-items" class="space-y-1 text-xs"></div>
+                </div>
+                <div class="border-t border-dashed border-gray-300 pt-3 space-y-1 text-xs">
+                    <div class="flex justify-between"><span class="text-gray-500">Sous-total</span><span id="tkt-subtotal">—</span></div>
+                    <div class="flex justify-between pt-1 border-t border-gray-300 mt-2 text-base font-bold"><span>TOTAL</span><span id="tkt-total" class="text-orange-500">—</span></div>
+                </div>
+                <div id="tkt-warranty-block" class="bg-green-50 border border-green-200 rounded-lg p-3 text-xs hidden">
+                    <p class="font-bold text-green-800 mb-1">Garanties produits</p>
+                    <p id="tkt-warranty-text" class="text-green-700">—</p>
+                </div>
+                <div class="border-t border-dashed border-gray-300 pt-3 text-center">
+                    <p class="text-[10px] text-gray-400">Validé par le vendeur</p>
+                    <p id="tkt-validation" class="text-[11px] text-green-600 font-bold mt-1">—</p>
+                    <p class="text-[10px] text-gray-400 mt-3">Merci pour votre achat !</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== NOTIFICATION OPÉRATEUR ===== -->
+<div id="operator-confirm-screen" class="screen hidden" style="background: #1c1c1e;">
+    <div class="flex-1 flex flex-col" style="background: #2c2c2e;">
+        <div class="p-4 pt-8 flex items-center justify-between text-white flex-shrink-0">
+            <button onclick="cancelOperatorConfirm()" class="text-blue-400 text-sm font-medium">Annuler</button>
+            <p class="font-bold text-base">Répondre</p>
+            <button onclick="submitOperatorPin()" class="text-blue-400 text-sm font-bold">Répondre</button>
+        </div>
+        <div id="operator-badge" class="mx-4 rounded-xl p-3 flex items-center gap-3 mb-4 flex-shrink-0" style="background:#F59E0B;">
+            <div id="operator-logo-text" class="bg-white text-black font-bold rounded-full w-10 h-10 flex items-center justify-center text-xs">MTN</div>
+            <div class="flex-1">
+                <p id="operator-name" class="font-bold text-sm">MTN Mobile Money</p>
+                <p id="operator-subtitle" class="text-[11px] opacity-90">Notification de paiement</p>
+            </div>
+            <span class="text-[10px] opacity-90" id="operator-time">Maintenant</span>
+        </div>
+        <div class="flex-1 flex flex-col justify-center px-6 text-center text-white">
+            <p id="operator-message" class="text-base leading-relaxed whitespace-pre-line"></p>
+        </div>
+        <div class="p-4 flex-shrink-0">
+            <input type="password" id="operator-pin" inputmode="numeric" maxlength="5" class="w-full rounded-xl p-4 text-center text-2xl tracking-widest font-bold" style="background:#1c1c1e; border:1px solid #3a3a3c; color:#fff;">
+            <p class="text-center text-[11px] text-gray-400 mt-2" id="operator-hint">Votre code est strictement confidentiel.</p>
+        </div>
+        <div class="p-4 pt-0 flex justify-between text-xs text-blue-400 flex-shrink-0">
+            <button onclick="cancelOperatorConfirm()">Précédent</button>
+            <button onclick="cancelOperatorConfirm()">Menu principal</button>
+        </div>
+    </div>
+</div>
+
+<!-- ===== RECADRAGE PHOTO ===== -->
+<div id="crop-screen" class="screen bg-black hidden">
+    <div class="bg-black text-white p-4 pt-8 flex justify-between items-center flex-shrink-0">
+        <button onclick="cancelCrop()" class="text-white text-sm font-medium">Annuler</button>
+        <h1 class="font-bold text-base">Recadrer la photo</h1>
+        <button onclick="applyCrop()" class="text-orange-400 text-sm font-bold">Valider</button>
+    </div>
+    <div id="crop-area" class="flex-1 relative overflow-hidden" style="touch-action: none; background: #000;">
+        <img id="crop-image" src="" class="select-none pointer-events-none" style="position: absolute; top: 50%; left: 50%; transform-origin: center center; max-width: none; max-height: none; will-change: transform;">
+        <div id="crop-frame" class="pointer-events-none" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 280px; height: 280px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.9); box-shadow: 0 0 0 9999px rgba(0,0,0,0.75); z-index: 10;"></div>
+    </div>
+    <div class="bg-black text-white p-4 flex-shrink-0 space-y-3">
+        <div class="flex items-center gap-3">
+            <button onclick="adjustCropZoom(-0.15)" class="w-9 h-9 rounded-full bg-gray-800 flex items-center justify-center text-white text-xl font-bold leading-none">−</button>
+            <input type="range" id="crop-zoom" min="1" max="3" step="0.01" value="1" class="flex-1 accent-orange-500" oninput="updateCropZoom(this.value)">
+            <button onclick="adjustCropZoom(0.15)" class="w-9 h-9 rounded-full bg-gray-800 flex items-center justify-center text-white text-xl font-bold leading-none">+</button>
+        </div>
+        <div class="flex gap-2 justify-center text-xs">
+            <button onclick="setCropRatio('square')" id="crop-ratio-square" class="px-3 py-1.5 rounded-full bg-gray-700">Carré</button>
+            <button onclick="setCropRatio('circle')" id="crop-ratio-circle" class="px-3 py-1.5 rounded-full bg-orange-500 font-bold">Rond</button>
+            <button onclick="setCropRatio('rect')" id="crop-ratio-rect" class="px-3 py-1.5 rounded-full bg-gray-700">Rectangulaire</button>
+        </div>
+    </div>
+</div>
+
+<!-- ===== PARAMÈTRES ===== -->
+<div id="settings-screen" class="screen bg-gray-50 hidden">
+    <div class="bg-green-800 text-white p-4 pt-8 flex items-center flex-shrink-0">
+        <button onclick="closeSettings()" class="mr-4"><svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button>
+        <h1 class="font-bold text-lg">Paramètres</h1>
+    </div>
+    <div class="flex-1 overflow-y-auto p-4 space-y-3">
+        <div class="bg-white p-4 rounded-xl"><div class="flex items-center gap-3"><div class="bg-green-600 text-white rounded-full w-12 h-12 flex items-center justify-center font-bold" id="settings-avatar">JD</div><div><p id="settings-name" class="font-bold text-gray-800">Jean Dupont</p><p id="settings-phone" class="text-xs text-gray-500">+242...</p><p id="settings-role" class="text-xs font-bold text-green-600 mt-1">Acheteur</p></div></div></div>
+        <div class="bg-white rounded-xl overflow-hidden">
+            <p class="px-4 py-2 text-xs font-bold text-gray-400 uppercase">Compte</p>
+            <button onclick="changePassword()" class="w-full flex items-center justify-between p-4 border-t"><span>Changer le mot de passe</span><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg></button>
+            <button onclick="toggleRole()" class="w-full flex items-center justify-between p-4 border-t"><span id="switch-role-text">Passer en mode vendeur</span><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg></button>
+            <button onclick="logout()" class="w-full flex items-center justify-between p-4 border-t text-orange-600"><span>Se déconnecter</span><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg></button>
+            <button onclick="deleteAccount()" class="w-full flex items-center justify-between p-4 border-t text-red-600"><span>Supprimer mon compte</span><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg></button>
+        </div>
+
+        <div class="bg-white rounded-xl overflow-hidden">
+            <p class="px-4 py-2 text-xs font-bold text-gray-400 uppercase">Aide & Communauté</p>
+            <button onclick="openWhatsAppSupport()" class="w-full flex items-center justify-between p-4 border-t">
+                <div class="flex items-center gap-3">
+                    <span class="w-9 h-9 rounded-full bg-green-100 text-green-600 flex items-center justify-center text-lg font-bold">💬</span>
+                    <div class="text-left">
+                        <p class="font-bold text-sm">Service client WhatsApp</p>
+                        <p class="text-[11px] text-gray-500">+242 06 842 89 67</p>
+                    </div>
+                </div>
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+            </button>
+            <button onclick="openWhatsAppCommunity()" class="w-full flex items-center justify-between p-4 border-t">
+                <div class="flex items-center gap-3">
+                    <span class="w-9 h-9 rounded-full bg-green-100 text-green-600 flex items-center justify-center text-lg font-bold">👥</span>
+                    <div class="text-left">
+                        <p class="font-bold text-sm">Communauté WhatsApp</p>
+                        <p class="text-[11px] text-gray-500">Rejoindre le groupe officiel</p>
+                    </div>
+                </div>
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+            </button>
+        </div>
+
+        <div class="bg-white rounded-xl overflow-hidden">
+            <p class="px-4 py-2 text-xs font-bold text-gray-400 uppercase">WhatsApp Business</p>
+            <div class="p-4 border-t"><div class="flex items-center gap-3 mb-3"><div id="wa-status-dot" class="w-3 h-3 rounded-full bg-gray-300"></div><div class="flex-1"><p id="wa-status-text" class="font-bold text-sm text-gray-800">Non connecté</p><p id="wa-status-number" class="text-xs text-gray-500">Aucun numéro associé</p></div></div><button onclick="connectWhatsApp()" id="wa-connect-btn" class="w-full bg-green-500 text-white font-bold py-2 rounded-lg text-sm">Connecter WhatsApp</button></div>
+        </div>
+        <div class="bg-white rounded-xl overflow-hidden">
+            <p class="px-4 py-2 text-xs font-bold text-gray-400 uppercase">Préférences</p>
+            <button onclick="toggleDarkMode()" class="w-full flex items-center justify-between p-4 border-t"><span>Mode sombre</span><div id="dark-toggle" class="w-12 h-6 rounded-full bg-gray-300 relative"><div id="dark-knob" class="w-5 h-5 bg-white rounded-full absolute top-0.5 left-0.5 transition-transform"></div></div></button>
+            <button onclick="toggleNotifications()" class="w-full flex items-center justify-between p-4 border-t"><span>Notifications</span><div id="notif-toggle" class="w-12 h-6 rounded-full bg-green-500 relative"><div id="notif-knob" class="w-5 h-5 bg-white rounded-full absolute top-0.5 right-0.5 transition-transform"></div></div></button>
+        </div>
+        <div class="bg-white rounded-xl overflow-hidden">
+            <p class="px-4 py-2 text-xs font-bold text-gray-400 uppercase">Application</p>
+            <button onclick="resetAllData()" class="w-full flex items-center justify-between p-4 border-t text-red-600"><span>Réinitialiser l'application</span></button>
+            <button onclick="openAbout()" class="w-full flex items-center justify-between p-4 border-t"><span>À propos</span><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg></button>
+            <button onclick="shareApp()" class="w-full flex items-center justify-between p-4 border-t"><span>Partager l'application</span><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg></button>
+            <button onclick="openHelp()" class="w-full flex items-center justify-between p-4 border-t"><span>Aide & Support</span><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg></button>
+            <button onclick="openPrivacy()" class="w-full flex items-center justify-between p-4 border-t"><span>Confidentialité</span><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg></button>
+            <button onclick="openTerms()" class="w-full flex items-center justify-between p-4 border-t"><span>Conditions d'utilisation</span><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg></button>
+        </div>
+        <div class="text-center text-xs text-gray-400 py-4">Grand Marché v1.4.0</div>
+    </div>
+</div>
+
+<!-- ===== À PROPOS ===== -->
+<div id="about-screen" class="screen bg-white hidden">
+    <div class="bg-green-800 text-white p-4 pt-8 flex items-center flex-shrink-0">
+        <button onclick="showScreen('settings-screen')" class="mr-4"><svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button>
+        <h1 class="font-bold text-lg">À propos</h1>
+    </div>
+    <div class="flex-1 overflow-y-auto p-6">
+        <div class="text-center mb-6">
+            <svg width="180" height="280" viewBox="0 0 320 500" xmlns="http://www.w3.org/2000/svg" class="mx-auto block">
+                <defs>
+                    <linearGradient id="lgCartG2" x1="30%" y1="0%" x2="70%" y2="100%"><stop offset="0%" stop-color="#FCD34D"/><stop offset="50%" stop-color="#FBBF24"/><stop offset="100%" stop-color="#F97316"/></linearGradient>
+                    <linearGradient id="lgLeafG2" x1="0%" y1="100%" x2="100%" y2="0%"><stop offset="0%" stop-color="#22C55E"/><stop offset="100%" stop-color="#84CC16"/></linearGradient>
+                    <linearGradient id="lgGrandG2" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#15803D"/><stop offset="100%" stop-color="#22C55E"/></linearGradient>
+                    <linearGradient id="lgMarcheG2" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#FBBF24"/><stop offset="100%" stop-color="#F97316"/></linearGradient>
+                </defs>
+                <path d="M 185 55 C 220 50 250 70 252 95 C 254 120 235 145 200 148 C 180 150 170 130 175 100 C 178 78 182 62 185 55 Z" fill="url(#lgLeafG2)"/>
+                <path d="M 95 145 C 85 115 72 100 62 92 C 52 84 55 70 68 68 C 82 66 90 78 98 95 C 106 112 112 128 118 145" fill="none" stroke="url(#lgCartG2)" stroke-width="24" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M 105 148 L 260 140 C 278 139 286 152 282 168 L 262 222 C 258 236 246 242 232 242 L 128 242 C 114 242 106 234 104 220 Z" fill="url(#lgCartG2)"/>
+                <path d="M 125 168 L 252 162 L 240 200 L 132 205 Z" fill="#FFFFFF" opacity="0.55"/>
+                <circle cx="142" cy="275" r="30" fill="url(#lgCartG2)"/>
+                <circle cx="142" cy="275" r="11" fill="#FFF7ED"/>
+                <circle cx="215" cy="275" r="30" fill="url(#lgCartG2)"/>
+                <circle cx="215" cy="275" r="11" fill="#FFF7ED"/>
+                <text x="160" y="385" text-anchor="middle" font-family="'Arial Black', Arial, sans-serif" font-weight="900" font-size="86" fill="url(#lgGrandG2)">Grand</text>
+                <text x="160" y="460" text-anchor="middle" font-family="'Arial Black', Arial, sans-serif" font-weight="900" font-size="86" fill="url(#lgMarcheG2)">Marché</text>
+            </svg>
+            <p class="text-sm text-gray-500 text-center mt-2">Version 1.4.0</p>
+        </div>
+        <div class="space-y-4 text-sm text-gray-600">
+            <p>Grand Marché est la première marketplace 100% congolaise. Notre mission est de connecter les vendeurs locaux aux acheteurs à travers tout le Congo.</p>
+            <div class="bg-green-50 border border-green-200 rounded-lg p-3"><p class="font-bold text-green-800 mb-1">Nos valeurs</p><ul class="text-xs space-y-1"><li>Soutien aux producteurs locaux</li><li>Confiance et transparence</li><li>Qualité et proximité</li></ul></div>
+            <p class="text-xs text-gray-400 text-center pt-4">Développé au Congo</p>
+        </div>
+    </div>
+</div>
+
+<!-- ===== CONFIDENTIALITÉ ===== -->
+<div id="privacy-screen" class="screen bg-white hidden">
+    <div class="bg-green-800 text-white p-4 pt-8 flex items-center flex-shrink-0">
+        <button onclick="showScreen('settings-screen')" class="mr-4"><svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button>
+        <h1 class="font-bold text-lg">Confidentialité</h1>
+    </div>
+    <div class="flex-1 overflow-y-auto p-6 space-y-4 text-sm text-gray-600">
+        <h2 class="text-lg font-bold text-gray-800">Politique de confidentialité</h2>
+        <div><h3 class="font-bold text-gray-800 mb-1">1. Données collectées</h3><p>Nous collectons votre nom, numéro de téléphone, adresse email, adresse de livraison et vos commandes pour assurer le bon fonctionnement du service.</p></div>
+        <div><h3 class="font-bold text-gray-800 mb-1">2. Utilisation des données</h3><p>Vos données servent uniquement à faciliter les transactions. Nous ne vendons jamais vos données à des tiers.</p></div>
+        <div><h3 class="font-bold text-gray-800 mb-1">3. Surveillance des messages</h3><p>Les messages échangés via la messagerie Grand Marché sont conservés et peuvent être consultés par l'équipe en cas de signalement ou d'enquête. En cas d'infraction (arnaque, fraude, menaces), ces messages peuvent être transmis aux autorités compétentes.</p></div>
+        <div><h3 class="font-bold text-gray-800 mb-1">4. Vos droits</h3><p>Vous pouvez à tout moment supprimer votre compte et toutes vos données depuis les paramètres de l'application.</p></div>
+        <div><h3 class="font-bold text-gray-800 mb-1">5. Contact</h3><p>Pour toute question : privacy@grandmarche.cg</p></div>
+    </div>
+</div>
+
+<!-- ===== CONDITIONS (vue statique) ===== -->
+<div id="terms-screen" class="screen bg-white hidden">
+    <div class="bg-green-800 text-white p-4 pt-8 flex items-center flex-shrink-0">
+        <button onclick="showScreen('settings-screen')" class="mr-4"><svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button>
+        <div><h1 class="font-bold text-lg">Conditions d'utilisation</h1><p class="text-[10px] opacity-80">Version 4.0</p></div>
+    </div>
+    <div id="terms-static-body" class="flex-1 overflow-y-auto p-5 space-y-4 text-sm text-gray-600"></div>
+</div>
+
+<!-- ===== AIDE ===== -->
+<div id="help-screen" class="screen bg-white hidden">
+    <div class="bg-green-800 text-white p-4 pt-8 flex items-center flex-shrink-0">
+        <button onclick="showScreen('settings-screen')" class="mr-4"><svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button>
+        <h1 class="font-bold text-lg">Aide & Support</h1>
+    </div>
+    <div class="flex-1 overflow-y-auto p-6 space-y-3">
+        <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+            <h3 class="font-bold text-green-800 text-sm mb-1">Besoin d'aide ?</h3>
+            <p class="text-xs text-green-700 mb-3">Notre équipe est disponible sur WhatsApp.</p>
+            <button onclick="openWhatsAppSupport()" class="w-full bg-green-500 text-white font-bold py-2.5 rounded-lg text-sm">Contacter le service client</button>
+        </div>
+        <a href="mailto:support@grandmarche.cg" class="block bg-white p-4 rounded-lg border"><p class="font-bold text-sm text-gray-800">Email support</p><p class="text-xs text-gray-500">support@grandmarche.cg</p></a>
+        <button onclick="openWhatsAppCommunity()" class="w-full bg-white p-4 rounded-lg border text-left">
+            <p class="font-bold text-sm text-gray-800">Rejoindre la communauté</p>
+            <p class="text-xs text-gray-500">Groupe WhatsApp officiel Grand Marché</p>
+        </button>
+        <div class="bg-white p-4 rounded-lg border">
+            <p class="font-bold text-sm text-gray-800 mb-2">Questions fréquentes</p>
+            <div class="space-y-2 text-xs text-gray-600">
+                <p><strong>Comment devenir vendeur ?</strong><br>Depuis l'écran d'accueil, choisissez Vendeur et créez votre boutique.</p>
+                <p><strong>Comment fonctionne le stock ?</strong><br>Le stock est automatiquement décrémenté à chaque achat.</p>
+                <p><strong>Comment fonctionne mon portefeuille ?</strong><br>Rechargez votre portefeuille (min 500 FCFA), puis payez vos commandes avec le solde disponible.</p>
+                <p><strong>Les messages sont-ils surveillés ?</strong><br>Oui, tous les messages sont conservés. En cas de litige ou d'infraction, ils peuvent être utilisés pour des poursuites.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== CHANGER MOT DE PASSE ===== -->
+<div id="change-password-screen" class="screen bg-white p-6 hidden">
+    <div class="flex items-center mb-6"><button onclick="showScreen('settings-screen')" class="text-gray-500 mr-4"><svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button><h2 class="text-xl font-bold">Changer le mot de passe</h2></div>
+    <div class="space-y-4">
+        <div><label class="block text-sm font-medium mb-1">Mot de passe actuel</label><input type="password" id="old-pass" class="w-full border rounded-lg p-3"></div>
+        <div><label class="block text-sm font-medium mb-1">Nouveau mot de passe</label><input type="password" id="change-new-pass" class="w-full border rounded-lg p-3"></div>
+        <div><label class="block text-sm font-medium mb-1">Confirmer</label><input type="password" id="change-confirm-pass" class="w-full border rounded-lg p-3"></div>
+    </div>
+    <button onclick="saveNewPassword()" class="w-full bg-green-600 text-white font-bold py-3 rounded-lg mt-6">Enregistrer</button>
+</div>
+
+</div>
+
+<script src="api.js"></script>
+<script src="script.js"></script>
+</body>
+</html>

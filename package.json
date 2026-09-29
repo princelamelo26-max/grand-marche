@@ -1,0 +1,13 @@
+{
+  "name": "grand-marche-server",
+  "version": "1.0.0",
+  "description": "Serveur Grand Marché — API, base SQLite, paiements Mobile Money (pawaPay)",
+  "main": "server.js",
+  "engines": { "node": ">=22.5" },
+  "scripts": {
+    "start": "node --disable-warning=ExperimentalWarning server.js",
+    "test": "node --disable-warning=ExperimentalWarning test/run.js"
+  },
+  "license": "UNLICENSED",
+  "private": true
+}
