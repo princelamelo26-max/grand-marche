@@ -1,29 +1,20 @@
-# Fichier de configuration pour Render (https://render.com)
-# Utilisation : sur render.com, "New +" -> "Blueprint" -> connecter ce dépôt GitHub.
-# Render lira ce fichier et proposera automatiquement la configuration ci-dessous.
 services:
   - type: web
     name: grand-marche
     runtime: node
-    plan: starter                    # le plan gratuit ne propose pas de disque persistant
+    plan: free
     buildCommand: npm install --omit=dev
     startCommand: npm start
     healthCheckPath: /api/health
     autoDeploy: true
-    disk:
-      name: grand-marche-data
-      mountPath: /var/data
-      sizeGB: 1
     envVars:
-      - key: PORT
-        value: 10000
       - key: DATA_DIR
-        value: /var/data
+        value: ./data
       - key: TOKEN_SECRET
-        generateValue: true          # Render génère et garde ce secret pour vous
+        generateValue: true
       - key: ADMIN_PHONE
-        sync: false                  # à saisir vous-même dans le tableau de bord Render
+        sync: false
       - key: PAYMENT_PROVIDER
-        value: mock                  # on passera à "pawapay" à l'étape suivante
+        value: mock
       - key: PUBLIC_URL
-        sync: false                  # à remplir avec l'URL donnée par Render après le 1er déploiement
+        sync: false
