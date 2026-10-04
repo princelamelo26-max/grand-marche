@@ -5,7 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="theme-color" content="#15803D">
 <title>Grand Marché — Marketplace congolaise</title>
-<link rel="icon" href="data:,">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="favicon-192.png">
+<link rel="apple-touch-icon" href="favicon-180.png">
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <link rel="stylesheet" href="style.css">
@@ -22,22 +24,7 @@
     <div class="bg-image" style="background-image: url('https://images.unsplash.com/photo-1542838132-92c53300491e?q=80&w=1000&auto=format&fit=crop');"></div>
     <div class="relative z-10 flex flex-col items-center justify-center h-full w-full">
         <div class="mb-10">
-            <svg width="220" height="340" viewBox="0 0 320 500" xmlns="http://www.w3.org/2000/svg">
-                <defs>
-                    <linearGradient id="lgCartG" x1="30%" y1="0%" x2="70%" y2="100%"><stop offset="0%" stop-color="#FCD34D"/><stop offset="50%" stop-color="#FBBF24"/><stop offset="100%" stop-color="#F97316"/></linearGradient>
-                    <linearGradient id="lgLeafG" x1="0%" y1="100%" x2="100%" y2="0%"><stop offset="0%" stop-color="#22C55E"/><stop offset="100%" stop-color="#84CC16"/></linearGradient>
-                    <linearGradient id="lgGrandG" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#15803D"/><stop offset="100%" stop-color="#22C55E"/></linearGradient>
-                    <linearGradient id="lgMarcheG" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#FBBF24"/><stop offset="100%" stop-color="#F97316"/></linearGradient>
-                </defs>
-                <path d="M 185 55 C 220 50 250 70 252 95 C 254 120 235 145 200 148 C 180 150 170 130 175 100 C 178 78 182 62 185 55 Z" fill="url(#lgLeafG)"/>
-                <path d="M 95 145 C 85 115 72 100 62 92 C 52 84 55 70 68 68 C 82 66 90 78 98 95 C 106 112 112 128 118 145" fill="none" stroke="url(#lgCartG)" stroke-width="24" stroke-linecap="round" stroke-linejoin="round"/>
-                <path d="M 105 148 L 260 140 C 278 139 286 152 282 168 L 262 222 C 258 236 246 242 232 242 L 128 242 C 114 242 106 234 104 220 Z" fill="url(#lgCartG)"/>
-                <path d="M 125 168 L 252 162 L 240 200 L 132 205 Z" fill="#FFFFFF" opacity="0.55"/>
-                <circle cx="142" cy="275" r="30" fill="url(#lgCartG)"/><circle cx="142" cy="275" r="11" fill="#FFF7ED"/>
-                <circle cx="215" cy="275" r="30" fill="url(#lgCartG)"/><circle cx="215" cy="275" r="11" fill="#FFF7ED"/>
-                <text x="160" y="385" text-anchor="middle" font-family="'Arial Black', Arial, sans-serif" font-weight="900" font-size="86" fill="url(#lgGrandG)">Grand</text>
-                <text x="160" y="460" text-anchor="middle" font-family="'Arial Black', Arial, sans-serif" font-weight="900" font-size="86" fill="url(#lgMarcheG)">Marché</text>
-            </svg>
+            <img src="logo.png" alt="Grand Marché" width="220" style="max-width:220px;height:auto" class="drop-shadow-lg">
         </div>
         <p class="text-center text-base text-green-100 mb-12">Achetez, vendez, soutenez<br>nos entrepreneurs !</p>
         <button onclick="showScreen('role-screen')" class="bg-orange-500 text-white font-bold py-4 px-10 rounded-full shadow-lg text-lg">Commencer</button>
@@ -131,7 +118,7 @@
                 <div><label class="block text-sm font-medium mb-1">Nom complet</label><input type="text" id="sel-name" oninput="updateSellerSteps()" class="w-full border rounded-lg p-3 bg-white"></div>
                 <div><label class="block text-sm font-medium mb-1">Téléphone</label><div class="flex items-center border rounded-lg p-3 bg-white"><span class="text-gray-500 pr-2 border-r">+242</span><input type="tel" id="sel-phone" oninput="updateSellerSteps()" class="w-full pl-3"></div></div>
                 <div><label class="block text-sm font-medium mb-1">Adresse email</label><input type="email" id="sel-email" oninput="updateSellerSteps()" placeholder="exemple@email.com" class="w-full border rounded-lg p-3 bg-white"></div>
-                <div><label class="block text-sm font-medium mb-1">Mot de passe</label><input type="password" id="sel-pass" oninput="updateSellerSteps()" class="w-full border rounded-lg p-3 bg-white"></div>
+                <div id="sel-pass-wrap"><label class="block text-sm font-medium mb-1">Mot de passe</label><input type="password" id="sel-pass" oninput="updateSellerSteps()" class="w-full border rounded-lg p-3 bg-white"></div>
             </div>
         </div>
         <div class="bg-gray-50 p-3 rounded-lg">
@@ -324,13 +311,13 @@
         </button>
 
         <button onclick="openBuyerFavorites()" class="w-full bg-white border border-red-200 rounded-xl p-4 flex items-center gap-3 shadow-sm text-left">
-            <div class="bg-red-100 text-red-500 rounded-full w-12 h-12 flex items-center justify-center text-2xl">♥</div>
+            <div class="bg-red-100 text-red-500 rounded-full w-12 h-12 flex items-center justify-center"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M11.645 20.91l-.022-.012a15.247 15.247 0 01-.383-.218 25.18 25.18 0 01-4.244-3.17C4.688 15.36 2.25 12.174 2.25 8.25 2.25 5.322 4.714 3 7.688 3A5.5 5.5 0 0112 5.052 5.5 5.5 0 0116.313 3c2.973 0 5.437 2.322 5.437 5.25 0 3.925-2.438 7.111-4.739 9.256a25.175 25.175 0 01-4.244 3.17 15.247 15.247 0 01-.383.219l-.022.012-.007.004-.003.001a.752.752 0 01-.704 0l-.003-.001z"/></svg></div>
             <div class="flex-1"><p class="font-bold text-gray-800">Mes produits favoris</p><p id="buyer-favorites-summary" class="text-xs text-gray-500">Retrouvez vos coups de cœur</p></div>
             <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
         </button>
 
         <button onclick="openBuyerReferral()" class="w-full bg-white border border-green-200 rounded-xl p-4 flex items-center gap-3 shadow-sm text-left">
-            <div class="bg-green-100 text-green-600 rounded-full w-12 h-12 flex items-center justify-center text-2xl">👥</div>
+            <div class="bg-green-100 text-green-600 rounded-full w-12 h-12 flex items-center justify-center"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m6-5.13a4 4 0 11-8 0 4 4 0 018 0zm9 2a4 4 0 10-8 0 4 4 0 008 0z"/></svg></div>
             <div class="flex-1"><p class="font-bold text-gray-800">Parrainer des amis</p><p id="buyer-referral-summary" class="text-xs text-gray-500">Gagnez des trophées en parrainant</p></div>
             <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
         </button>
@@ -403,11 +390,11 @@
         <div class="bg-white rounded-xl p-4">
             <p class="text-xs font-bold text-gray-500 uppercase mb-2">Progression</p>
             <div class="space-y-2">
-                <div class="flex justify-between text-xs"><span>🥉 Parrain</span><span id="ref-p1">0 / 10</span></div>
+                <div class="flex justify-between text-xs"><span class="inline-flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-orange-500"></span>Parrain</span><span id="ref-p1">0 / 10</span></div>
                 <div class="bg-gray-100 rounded-full h-2"><div id="ref-bar1" class="bg-orange-500 h-2 rounded-full" style="width:0%"></div></div>
-                <div class="flex justify-between text-xs mt-2"><span>🥈 Super parrain</span><span id="ref-p2">0 / 25</span></div>
+                <div class="flex justify-between text-xs mt-2"><span class="inline-flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-blue-500"></span>Super parrain</span><span id="ref-p2">0 / 25</span></div>
                 <div class="bg-gray-100 rounded-full h-2"><div id="ref-bar2" class="bg-blue-500 h-2 rounded-full" style="width:0%"></div></div>
-                <div class="flex justify-between text-xs mt-2"><span>💎 Ambassadeur</span><span id="ref-p3">0 / 50</span></div>
+                <div class="flex justify-between text-xs mt-2"><span class="inline-flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-purple-500"></span>Ambassadeur</span><span id="ref-p3">0 / 50</span></div>
                 <div class="bg-gray-100 rounded-full h-2"><div id="ref-bar3" class="bg-purple-500 h-2 rounded-full" style="width:0%"></div></div>
             </div>
         </div>
@@ -607,7 +594,7 @@
         <button onclick="openReportFromChat()" class="text-white"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg></button>
     </div>
     <div class="bg-amber-50 border-b border-amber-200 px-3 py-2 flex-shrink-0">
-        <p class="text-[10px] text-amber-800 leading-relaxed"><strong>⚠️ Attention :</strong> tous les messages sont conservés par Grand Marché. En cas d'arnaque, fraude ou infraction, ils peuvent être utilisés dans le cadre de poursuites judiciaires.</p>
+        <p class="text-[10px] text-amber-800 leading-relaxed"><strong><svg class="w-3.5 h-3.5 inline -mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg> Attention :</strong> tous les messages sont conservés par Grand Marché. En cas d'arnaque, fraude ou infraction, ils peuvent être utilisés dans le cadre de poursuites judiciaires.</p>
     </div>
     <div id="chat-product-banner" class="bg-white border-b-2 border-orange-200 p-3 flex-shrink-0 hidden">
         <p class="text-[10px] text-orange-600 font-bold uppercase mb-2">Produit en négociation</p>
@@ -661,7 +648,7 @@
     <div class="bg-white p-4 pt-8 border-b flex-shrink-0 flex justify-between items-center">
         <button onclick="closeProductScreen()"><svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button>
         <div class="flex gap-3 items-center">
-            <button id="fav-product-btn" onclick="toggleFavorite()" class="text-2xl text-gray-400">♡</button>
+            <button id="fav-product-btn" onclick="toggleFavorite()" class="text-gray-400 p-1"><svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z"/></svg></button>
             <button onclick="shareOnWhatsApp()" class="text-green-500 text-sm font-bold flex items-center gap-1"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg>Partager</button>
             <button onclick="openReportShop()" class="text-red-400 text-sm font-bold">Signaler</button>
         </div>
@@ -843,7 +830,7 @@
         </button>
 
         <button onclick="openSellerSubscribers()" class="w-full text-left rounded-xl p-4 bg-white border-2 border-green-200 shadow-sm flex items-center gap-3">
-            <div class="bg-green-100 text-green-700 rounded-full w-12 h-12 flex items-center justify-center flex-shrink-0 text-2xl">👥</div>
+            <div class="bg-green-100 text-green-700 rounded-full w-12 h-12 flex items-center justify-center flex-shrink-0"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m6-5.13a4 4 0 11-8 0 4 4 0 018 0zm9 2a4 4 0 10-8 0 4 4 0 008 0z"/></svg></div>
             <div class="flex-1">
                 <p class="font-bold text-gray-800">Mes abonnés</p>
                 <p id="dash-subscribers-count" class="text-xs text-gray-500 font-bold">0 abonné</p>
@@ -1579,7 +1566,7 @@
             <p class="px-4 py-2 text-xs font-bold text-gray-400 uppercase">Aide & Communauté</p>
             <button onclick="openWhatsAppSupport()" class="w-full flex items-center justify-between p-4 border-t">
                 <div class="flex items-center gap-3">
-                    <span class="w-9 h-9 rounded-full bg-green-100 text-green-600 flex items-center justify-center text-lg font-bold">💬</span>
+                    <span class="w-9 h-9 rounded-full bg-green-100 text-green-600 flex items-center justify-center"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg></span>
                     <div class="text-left">
                         <p class="font-bold text-sm">Service client WhatsApp</p>
                         <p class="text-[11px] text-gray-500">+242 06 842 89 67</p>
@@ -1589,7 +1576,7 @@
             </button>
             <button onclick="openWhatsAppCommunity()" class="w-full flex items-center justify-between p-4 border-t">
                 <div class="flex items-center gap-3">
-                    <span class="w-9 h-9 rounded-full bg-green-100 text-green-600 flex items-center justify-center text-lg font-bold">👥</span>
+                    <span class="w-9 h-9 rounded-full bg-green-100 text-green-600 flex items-center justify-center"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m6-5.13a4 4 0 11-8 0 4 4 0 018 0zm9 2a4 4 0 10-8 0 4 4 0 008 0z"/></svg></span>
                     <div class="text-left">
                         <p class="font-bold text-sm">Communauté WhatsApp</p>
                         <p class="text-[11px] text-gray-500">Rejoindre le groupe officiel</p>
@@ -1629,24 +1616,7 @@
     </div>
     <div class="flex-1 overflow-y-auto p-6">
         <div class="text-center mb-6">
-            <svg width="180" height="280" viewBox="0 0 320 500" xmlns="http://www.w3.org/2000/svg" class="mx-auto block">
-                <defs>
-                    <linearGradient id="lgCartG2" x1="30%" y1="0%" x2="70%" y2="100%"><stop offset="0%" stop-color="#FCD34D"/><stop offset="50%" stop-color="#FBBF24"/><stop offset="100%" stop-color="#F97316"/></linearGradient>
-                    <linearGradient id="lgLeafG2" x1="0%" y1="100%" x2="100%" y2="0%"><stop offset="0%" stop-color="#22C55E"/><stop offset="100%" stop-color="#84CC16"/></linearGradient>
-                    <linearGradient id="lgGrandG2" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#15803D"/><stop offset="100%" stop-color="#22C55E"/></linearGradient>
-                    <linearGradient id="lgMarcheG2" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#FBBF24"/><stop offset="100%" stop-color="#F97316"/></linearGradient>
-                </defs>
-                <path d="M 185 55 C 220 50 250 70 252 95 C 254 120 235 145 200 148 C 180 150 170 130 175 100 C 178 78 182 62 185 55 Z" fill="url(#lgLeafG2)"/>
-                <path d="M 95 145 C 85 115 72 100 62 92 C 52 84 55 70 68 68 C 82 66 90 78 98 95 C 106 112 112 128 118 145" fill="none" stroke="url(#lgCartG2)" stroke-width="24" stroke-linecap="round" stroke-linejoin="round"/>
-                <path d="M 105 148 L 260 140 C 278 139 286 152 282 168 L 262 222 C 258 236 246 242 232 242 L 128 242 C 114 242 106 234 104 220 Z" fill="url(#lgCartG2)"/>
-                <path d="M 125 168 L 252 162 L 240 200 L 132 205 Z" fill="#FFFFFF" opacity="0.55"/>
-                <circle cx="142" cy="275" r="30" fill="url(#lgCartG2)"/>
-                <circle cx="142" cy="275" r="11" fill="#FFF7ED"/>
-                <circle cx="215" cy="275" r="30" fill="url(#lgCartG2)"/>
-                <circle cx="215" cy="275" r="11" fill="#FFF7ED"/>
-                <text x="160" y="385" text-anchor="middle" font-family="'Arial Black', Arial, sans-serif" font-weight="900" font-size="86" fill="url(#lgGrandG2)">Grand</text>
-                <text x="160" y="460" text-anchor="middle" font-family="'Arial Black', Arial, sans-serif" font-weight="900" font-size="86" fill="url(#lgMarcheG2)">Marché</text>
-            </svg>
+            <img src="logo.png" alt="Grand Marché" width="180" style="max-width:180px;height:auto" class="mx-auto block">
             <p class="text-sm text-gray-500 text-center mt-2">Version 1.4.0</p>
         </div>
         <div class="space-y-4 text-sm text-gray-600">
