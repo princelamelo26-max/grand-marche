@@ -61,6 +61,10 @@ var GM = (function () {
                 GM_FEES.boostPrice7d = c.boostPrice; GM_FEES.boostDays = c.boostDays; GM_FEES.withdrawalRate = c.withdrawalFeeRate;
             }
             if (typeof CERTIFICATION_PRICE !== 'undefined') CERTIFICATION_PRICE = c.certificationPrice;
+            var pct = Math.round(c.withdrawalFeeRate * 100);
+            ['dash-commission-rate', 'wallet-commission-rate'].forEach(function (id) {
+                var el = document.getElementById(id); if (el) el.textContent = 'Commission ' + pct + ' %';
+            });
             return loadCatalog();
         }).catch(function () { /* hors-ligne : on garde les données locales */ });
     }
@@ -258,7 +262,7 @@ var GM = (function () {
         if (o.status !== 'pending_payment') timeline.push({ step: 'paid', label: 'Paiement en séquestre', at: fmtDate(o.createdAt) });
         var order = {
             id: o.id, shopIndex: idx, shopId: o.shopId, shopName: o.shopName, shopPhone: o.shopPhone,
-            buyerName: o.buyerName, buyerPhone: o.buyerPhone,
+            buyerId: o.buyerId, buyerName: o.buyerName, buyerPhone: o.buyerPhone,
             items: (o.items || []).map(function (it) { return { name: it.name, qty: it.qty, price: it.price, hasWarranty: false, warrantyText: '' }; }),
             total: o.total, status: o.status, escrowStatus: held ? 'held' : (o.status === 'completed' ? 'released' : (o.status === 'refunded' ? 'refunded' : null)),
             deliveryMode: o.deliveryMode, deliveryStatus: o.status === 'paid' ? 'pending' : 'accepted',
@@ -288,8 +292,20 @@ var GM = (function () {
     function createOrder(payload) { return req('POST', '/api/orders', payload); }
     function orderAction(id, action, body) { return req('POST', '/api/orders/' + encodeURIComponent(id) + '/' + action, body || {}); }
 
+    /* ---- Messagerie (réelle, via le serveur) ---- */
+    function chatThreads() { return req('GET', '/api/chat').then(function (d) { return d.threads; }); }
+    function chatMessages(shopId, buyerId) {
+        var q = buyerId ? ('?buyerId=' + encodeURIComponent(buyerId)) : '';
+        return req('GET', '/api/chat/' + shopId + q).then(function (d) { return d.messages; });
+    }
+    function sendChatMessage(shopId, body, buyerId) {
+        var payload = { body: body }; if (buyerId) payload.buyerId = buyerId;
+        return req('POST', '/api/chat/' + shopId, payload);
+    }
+
     return { init: init, req: req, token: token, loggedIn: loggedIn, register: register, login: login, logout: logout,
         adoptShop: adoptShop, createShop: createShop, loadCatalog: loadCatalog, scheduleSync: scheduleSync, syncNow: syncNow,
         removeProduct: removeProduct, pay: pay, shrinkImage: shrinkImage, config: function () { return cfg; }, online: function () { return online; },
-        syncOrders: syncOrders, createOrder: createOrder, orderAction: orderAction };
+        syncOrders: syncOrders, createOrder: createOrder, orderAction: orderAction,
+        chatThreads: chatThreads, chatMessages: chatMessages, sendChatMessage: sendChatMessage };
 })();

@@ -30,7 +30,7 @@ var CERTIFICATION_PRICE = 30000;
 var GOLD_CERTIFICATION_THRESHOLD = 100000;
 /* Tarifs de la plateforme (sources de revenus) — à modifier ici uniquement */
 var GM_FEES = {
-    withdrawalRate: 0.05,      // commission sur chaque retrait vendeur
+    withdrawalRate: 0.03,      // commission sur chaque retrait vendeur (valeur par défaut avant synchro serveur)
     boostPrice7d: 1500,        // mise en avant d'un produit pendant 7 jours (FCFA)
     boostDays: 7
 };
@@ -79,7 +79,9 @@ var pendingLogoData = null;
 var pendingProductImages = [];
 var pendingPhotoQueue = [];
 var buyerTab = 'orders';
-var currentChatId = null;
+var currentChatShopId = null;
+var currentChatBuyerId = null;
+var _chatDraftText = null;
 var darkMode = false;
 var notificationsOn = true;
 var whatsappConnected = false;
@@ -188,6 +190,7 @@ var followedShops = [];
 var buyerOrders = [];
 var sellerOrders = [];
 var conversations = [];
+var userId = null;
 
 /* =========================================================
    HELPERS
@@ -419,6 +422,11 @@ function openSellerFlow() {
         switchSellerMode('register');
     }
 }
+function openSellerFlowFromSettings() {
+    closeSettings();
+    showScreen('seller-register-screen');
+    switchSellerMode('register');
+}
 
 /* =========================================================
    NOTIFICATIONS
@@ -456,7 +464,7 @@ function openNotifications() {
     var c = document.getElementById('notifications-list');
     if (c) {
         if (list.length === 0) {
-            c.innerHTML = '<div class="text-center py-10 text-gray-400 text-sm">Rien pour le moment — tout est calme 🌿</div>';
+            c.innerHTML = '<div class="text-center py-10 text-gray-400 text-sm">Rien pour le moment — tout est calme.</div>';
         } else {
             var h = '';
             for (var i = 0; i < list.length; i++) {
@@ -1715,15 +1723,16 @@ function toggleFavorite() {
     favoriteProducts.push({ shopIndex: idx, productName: name });
     refreshBuyerTrophies();
     haptic(30);
-    toast('Ajouté à vos coups de cœur ❤️', 'success');
+    toast('Ajouté à vos coups de cœur.', 'success');
     _stateDirty = true; updateFavoriteBtn();
 }
 function updateFavoriteBtn() {
     var btn = document.getElementById('fav-product-btn');
     if (!btn || !_currentProductData) return;
     var fav = isFavorite(currentShopIndex, _currentProductData.name);
-    btn.innerHTML = fav ? '&#9829;' : '&#9825;';
-    btn.className = fav ? 'text-red-500 text-2xl' : 'text-gray-400 text-2xl';
+    btn.className = fav ? 'text-red-500 p-1' : 'text-gray-400 p-1';
+    var path = btn.querySelector('path');
+    if (path) path.setAttribute('fill', fav ? 'currentColor' : 'none');
 }
 
 /* ===== MES FAVORIS ===== */
@@ -1739,7 +1748,7 @@ function renderBuyerFavorites() {
     if (favoriteProducts.length === 0) {
         grid.innerHTML = '<div class="col-span-2 text-center py-12 text-gray-400 text-sm">' +
             'Pas encore de coup de cœur.<br>' +
-            '<span class="text-xs">Touchez ♥ sur un produit pour le garder ici.</span></div>';
+            '<span class="text-xs">Touchez le cœur sur un produit pour le garder ici.</span></div>';
         return;
     }
     var h = '';
@@ -1791,7 +1800,7 @@ function renderReferralScreen() {
     var list = document.getElementById('referral-list');
     if (list) {
         if (count === 0) {
-            list.innerHTML = '<p class="text-xs text-gray-400 text-center py-3">Personne encore… partagez votre code pour commencer 🌱</p>';
+            list.innerHTML = '<p class="text-xs text-gray-400 text-center py-3">Personne encore… partagez votre code pour commencer.</p>';
         } else {
             var h = '';
             for (var i = 0; i < buyerReferrals.length; i++) {
@@ -2052,16 +2061,11 @@ function updateFollowBtn() {
     var b = document.getElementById('follow-btn');
     if (!b) return;
 
-    if (isSeller && !hasBuyerAccount) {
+    if (isSeller || viewingMyShop) {
         b.classList.add('hidden');
         return;
     }
     b.classList.remove('hidden');
-    if (!hasBuyerAccount) {
-        b.textContent = 'Suivre';
-        b.className = 'flex-1 bg-green-600 text-white font-bold py-2 rounded-lg text-sm';
-        return;
-    }
     if (isFollowing(currentShopIndex)) {
         b.textContent = 'Suivi ✓';
         b.className = 'flex-1 bg-gray-200 text-gray-700 font-bold py-2 rounded-lg text-sm';
@@ -2075,16 +2079,11 @@ function updateProductFollowBtn() {
     var btn = document.getElementById('product-follow-btn');
     if (!btn) return;
 
-    if (isSeller && !hasBuyerAccount) {
+    if (isSeller || _isMyOwnShop(currentShopIndex)) {
         btn.classList.add('hidden');
         return;
     }
     btn.classList.remove('hidden');
-    if (!hasBuyerAccount) {
-        btn.textContent = 'Suivre';
-        btn.className = 'mt-2 w-full bg-green-600 text-white font-bold py-2 rounded-lg text-xs';
-        return;
-    }
     if (isFollowing(currentShopIndex)) {
         btn.textContent = 'Suivi ✓';
         btn.className = 'mt-2 w-full border-2 border-gray-300 bg-gray-100 text-gray-700 font-bold py-2 rounded-lg text-xs';
@@ -2208,8 +2207,7 @@ function openReportShop() {
     showScreen('report-screen');
 }
 function openReportFromChat() {
-    var cv = null;
-    for (var i = 0; i < conversations.length; i++) if (conversations[i].id === currentChatId) { cv = conversations[i]; break; }
+    var cv = _findConv(currentChatShopId, currentChatBuyerId);
     if (cv) {
         reportTarget = { name: cv.participantName };
         document.getElementById('report-target-name').textContent = cv.participantName;
@@ -2383,7 +2381,7 @@ function toggleRole() {
     } else {
         if (!myShop) {
             gmConfirm('Vous n\'avez pas encore de boutique vendeur.\n\nEn créer une maintenant ?', 'Compte vendeur').then(function(go) {
-                if (go) { closeSettings(); showScreen('seller-register-screen'); }
+                if (go) openSellerFlowFromSettings();
             });
             return;
         }
@@ -2476,6 +2474,28 @@ function toggleNotifications() {
 /* =========================================================
    INSCRIPTION / VENDEUR
    ========================================================= */
+function prepareSellerSignup() {
+    var already = GM.loggedIn();
+    var nameEl = document.getElementById('sel-name'), phoneEl = document.getElementById('sel-phone'),
+        emailEl = document.getElementById('sel-email'), passWrap = document.getElementById('sel-pass-wrap'),
+        title = document.getElementById('seller-header-title'), sub = document.getElementById('seller-header-subtitle');
+    if (already) {
+        if (nameEl) { nameEl.value = userName || ''; nameEl.readOnly = true; }
+        if (phoneEl) { phoneEl.value = (userPhone || '').replace(/^0/, ''); phoneEl.readOnly = true; }
+        if (emailEl) { emailEl.value = userEmail || ''; emailEl.readOnly = true; }
+        if (passWrap) passWrap.classList.add('hidden');
+        if (title) title.textContent = 'Créer ma boutique';
+        if (sub) sub.textContent = 'Votre compte ' + (userPhone || '') + ' reste le même';
+    } else {
+        if (nameEl) { nameEl.value = ''; nameEl.readOnly = false; }
+        if (phoneEl) { phoneEl.value = ''; phoneEl.readOnly = false; }
+        if (emailEl) { emailEl.value = ''; emailEl.readOnly = false; }
+        if (passWrap) passWrap.classList.remove('hidden');
+        if (title) title.textContent = 'Devenir vendeur';
+        if (sub) sub.textContent = 'Créez votre boutique';
+    }
+    updateSellerSteps();
+}
 function switchSellerMode(mode) {
     sellerMode = mode;
     var tr = document.getElementById('tab-register'), tl = document.getElementById('tab-login');
@@ -2485,6 +2505,7 @@ function switchSellerMode(mode) {
         tr.className = 'flex-1 bg-white text-orange-500 font-bold py-2 rounded-lg text-sm';
         tl.className = 'flex-1 text-white font-bold py-2 rounded-lg text-sm border border-white border-opacity-40';
         rf.classList.remove('hidden'); lf.classList.add('hidden'); si.classList.remove('hidden');
+        prepareSellerSignup();
     } else {
         tl.className = 'flex-1 bg-white text-orange-500 font-bold py-2 rounded-lg text-sm';
         tr.className = 'flex-1 text-white font-bold py-2 rounded-lg text-sm border border-white border-opacity-40';
@@ -2533,7 +2554,7 @@ function saveRegistrationAndGoHome() {
     showLoading('Création du compte...');
     GM.register({ name: n, phone: c, password: ps, email: em, referral: refCode }).then(function (sess) {
         hideLoading();
-        userName = sess.user.name; userPass = ''; userEmail = em; userPhone = sess.user.phone; isSeller = false; hasBuyerAccount = true;
+        userName = sess.user.name; userPass = ''; userEmail = em; userPhone = sess.user.phone; userId = sess.user.id; isSeller = false; hasBuyerAccount = true;
         buyerTrophyStats.account = 1; updateBuyerTrophyActivity();
         _stateDirty = true;
         if (sess.referralApplied) toast('Code parrain ' + refCode + ' appliqué. Bienvenue !', 'success', 4000);
@@ -2549,7 +2570,7 @@ function buyerLogin() {
     var c = p.replace(/\s/g,''); if (c.indexOf('0') !== 0 && c.length === 8) c = '0' + c;
     showLoading('Connexion...');
     GM.login(c, ps).then(function (sess) {
-        userName = sess.user.name; userPhone = sess.user.phone; userEmail = sess.user.email || ''; userPass = '';
+        userName = sess.user.name; userPhone = sess.user.phone; userEmail = sess.user.email || ''; userPass = ''; userId = sess.user.id;
         isSeller = false; hasBuyerAccount = true; _stateDirty = true;
         return (sess.shop ? GM.adoptShop(sess) : GM.loadCatalog()).then(function () {
             hideLoading(); toast('Bienvenue ' + userName + '.', 'success'); showScreen('home-screen');
@@ -2557,11 +2578,6 @@ function buyerLogin() {
     }).catch(function (e) { hideLoading(); toast(e.message, 'error', 5000); });
 }
 function createShop() {
-    var n = document.getElementById('sel-name').value.trim();
-    var p = document.getElementById('sel-phone').value.trim();
-    var ps = document.getElementById('sel-pass').value;
-    var emailEl = document.getElementById('sel-email');
-    var em = emailEl ? emailEl.value.trim() : '';
     var sn = document.getElementById('sel-shop-name').value.trim();
     var c = document.getElementById('sel-shop-category').value;
     var a = document.getElementById('sel-shop-address').value.trim();
@@ -2569,26 +2585,42 @@ function createShop() {
     var w = document.getElementById('sel-whatsapp').value.trim();
     var hd = document.getElementById('sel-delivery').checked;
     var hc = document.getElementById('sel-cod').checked;
+    if (sn.length < 3) { toast('Nom boutique requis.', 'error'); return; }
+    if (!c) { toast('Catégorie requise.', 'error'); return; }
+    if (a.length < 3) { toast('Adresse requise.', 'error'); return; }
+    var initials = getInitials(sn);
+
+    function finishShopCreation(n, cp, em) {
+        var wp = w ? w.replace(/\s/g,'') : cp; if (wp.indexOf('0') !== 0 && wp.length === 8) wp = '0' + wp;
+        showLoading('Création de votre boutique...');
+        GM.createShop({ name: sn, category: c, address: a, description: d, logo: pendingLogoData || null }).then(function (srvShop) {
+            hideLoading();
+            _createShopLocal(n, cp, em, sn, initials, c, a, d, wp, hd, hc, srvShop.id);
+        }).catch(function (e) { hideLoading(); toast(e.message, 'error', 5000); });
+    }
+
+    if (GM.loggedIn()) {
+        // Compte déjà connecté (ex. un acheteur qui devient aussi vendeur) : on réutilise la même session,
+        // pas besoin de redemander un mot de passe pour le même compte.
+        finishShopCreation(userName, userPhone, userEmail || '');
+        return;
+    }
+
+    var n = document.getElementById('sel-name').value.trim();
+    var p = document.getElementById('sel-phone').value.trim();
+    var ps = document.getElementById('sel-pass').value;
+    var emailEl = document.getElementById('sel-email');
+    var em = emailEl ? emailEl.value.trim() : '';
     if (n.length < 3) { toast('Nom requis.', 'error'); return; }
     if (p.replace(/[^0-9]/g,'').length < 8) { toast('Numéro invalide.', 'error'); return; }
     if (!em) { toast('Adresse email requise.', 'error'); return; }
     if (!isValidEmail(em)) { toast('Adresse email invalide.', 'error'); return; }
     if (ps.length < 6) { toast('Mot de passe 6 min.', 'error'); return; }
-    if (sn.length < 3) { toast('Nom boutique requis.', 'error'); return; }
-    if (!c) { toast('Catégorie requise.', 'error'); return; }
-    if (a.length < 3) { toast('Adresse requise.', 'error'); return; }
-    var initials = getInitials(sn);
     var cp = p.replace(/\s/g,''); if (cp.indexOf('0') !== 0 && cp.length === 8) cp = '0' + cp;
-    var wp = w ? w.replace(/\s/g,'') : cp; if (wp.indexOf('0') !== 0 && wp.length === 8) wp = '0' + wp;
     showLoading('Création de votre boutique...');
-    GM.register({ name: n, phone: cp, password: ps, email: em }).catch(function (e) {
-        if (e.status === 409) return GM.login(cp, ps); throw e;
-    }).then(function (sess) {
-        if (sess.shop) throw new Error('Ce compte a déjà une boutique. Utilisez « Se connecter ».');
-        return GM.createShop({ name: sn, category: c, address: a, description: d, logo: pendingLogoData || null });
-    }).then(function (srvShop) {
-        hideLoading();
-        _createShopLocal(n, cp, em, sn, initials, c, a, d, wp, hd, hc, srvShop.id);
+    GM.register({ name: n, phone: cp, password: ps, email: em }).then(function (sess) {
+        userId = sess.user.id;
+        finishShopCreation(n, cp, em);
     }).catch(function (e) { hideLoading(); toast(e.message, 'error', 5000); });
 }
 function _createShopLocal(n, cp, em, sn, initials, c, a, d, wp, hd, hc, serverShopId) {
@@ -2607,7 +2639,7 @@ function _createShopLocal(n, cp, em, sn, initials, c, a, d, wp, hd, hc, serverSh
     pendingLogoData = null;
     if (wp) { whatsappConnected = true; whatsappNumber = wp; }
     syncMyShopToCatalog(); applyShopToDashboard();
-    isSeller = true; _stateDirty = true;
+    isSeller = true; hasBuyerAccount = true; _stateDirty = true;
     toast('Félicitations ' + n.split(' ')[0] + ', votre boutique est créée.', 'success', 4000);
     showScreen('seller-dashboard-screen');
 }
@@ -2740,7 +2772,8 @@ function addToCartWithQty() {
         image: _currentProductData.image, qty: _productQty,
         hasDelivery: _currentProductData.hasDelivery,
         hasWarranty: _currentProductData.hasWarranty,
-        warrantyText: _currentProductData.warrantyText
+        warrantyText: _currentProductData.warrantyText,
+        serverId: _currentProductData.serverId
     });
     updateCartUI(); _stateDirty = true;
     haptic([10, 30, 10]);
@@ -2756,7 +2789,7 @@ function renderCartScreen() {
     if (!container) return;
     if (cart.length === 0) {
         container.innerHTML = '<div class="text-center py-10">' +
-            '<p class="text-gray-500 font-bold">Votre panier attend ses premiers articles 🛒</p>' +
+            '<p class="text-gray-500 font-bold">Votre panier attend ses premiers articles</p>' +
             '<p class="text-xs text-gray-400 mt-1 mb-4">Faites un tour, il y a de belles choses à découvrir.</p>' +
             '<button onclick="showScreen(\'home-screen\')" class="bg-green-600 text-white font-bold py-2 px-6 rounded-lg text-sm">Explorer les boutiques</button></div>';
         if (footer) footer.classList.add('hidden');
@@ -3583,8 +3616,8 @@ function sellerLogin() {
         if (!sess.shop) { hideLoading(); toast('Aucune boutique sur ce compte. Créez votre boutique.', 'warn', 5000); switchSellerMode('register'); return; }
         return GM.adoptShop(sess).then(function () {
             hideLoading();
-            userName = sess.user.name; userPhone = sess.user.phone; userEmail = sess.user.email || '';
-            isSeller = true; applyShopToDashboard(); syncMyShopToCatalog(); _stateDirty = true;
+            userName = sess.user.name; userPhone = sess.user.phone; userEmail = sess.user.email || ''; userId = sess.user.id;
+            isSeller = true; hasBuyerAccount = true; applyShopToDashboard(); syncMyShopToCatalog(); _stateDirty = true;
             toast('Connexion réussie.', 'success'); showScreen('seller-dashboard-screen');
         });
     }).catch(function (e) { hideLoading(); toast(e.message, 'error', 5000); });
@@ -3665,10 +3698,10 @@ function openShopProfile(index) {
     var followBtn = document.getElementById('follow-btn');
     var contactBtn = document.getElementById('contact-seller-btn');
 
-    // Bouton Suivre : visible pour les ACHETEURS (et vendeurs avec compte acheteur)
-    // Masqué uniquement si vendeur sans compte acheteur
+    // Bouton Suivre : visible sur toutes les boutiques en mode CLIENT uniquement.
+    // Masqué en mode BOUTIQUE (vendeur), et masqué sur sa propre boutique.
     if (followBtn) {
-        if (isSeller && !hasBuyerAccount) {
+        if (isSeller || viewingMyShop) {
             followBtn.classList.add('hidden');
         } else {
             followBtn.classList.remove('hidden');
@@ -3720,7 +3753,7 @@ function openShopProduct(i) {
     var s = shopsCatalog[currentShopIndex]; if (!s) return;
     var p = s.products[i]; if (!p) return;
     productScreenOrigin = 'shop-profile-screen';
-    showProductScreen(p.name, p.price.toLocaleString('fr-FR')+' FCFA', getProductMainImage(p), p.rating, p.reviews, p.desc, p.hasDelivery, 'shop-profile-screen', p.images, p.hasWarranty, p.warrantyText, { stock: p.stock, category: p.category });
+    showProductScreen(p.name, p.price.toLocaleString('fr-FR')+' FCFA', getProductMainImage(p), p.rating, p.reviews, p.desc, p.hasDelivery, 'shop-profile-screen', p.images, p.hasWarranty, p.warrantyText, { stock: p.stock, category: p.category, serverId: p.serverId });
 }
 function closeShopProfile() { showScreen(shopProfileOrigin === 'seller-dashboard-screen' ? 'seller-dashboard-screen' : 'home-screen'); }
 function closeProductScreen() { showScreen(productScreenOrigin === 'shop-profile-screen' ? 'shop-profile-screen' : 'home-screen'); }
@@ -3730,6 +3763,8 @@ function openSubscriptions() {
         return;
     }
     renderSubscriptions();
+    var b = document.getElementById('subs-badge');
+    if (b) b.classList.add('hidden');
     showScreen('subscriptions-screen');
 }
 function renderSubscriptions() {
@@ -3784,26 +3819,28 @@ function contactSeller() {
 }
 function openChatFromOrder(orderId) {
     var order = findBuyerOrder(orderId) || findSellerOrder(orderId); if (!order) return;
-    var convId = 'conv-buyer-' + order.shopIndex;
-    var conv = null;
-    for (var i = 0; i < conversations.length; i++) if (conversations[i].id === convId) { conv = conversations[i]; break; }
-    if (!conv) {
-        var shop = shopsCatalog[order.shopIndex];
-        conv = {
-            id: convId, participantName: shop ? shop.name : order.shopName,
-            buyerName: order.buyerName, buyerPhone: order.buyerPhone,
-            sellerName: order.shopName, sellerPhone: order.shopPhone,
-            participantRole: 'seller', shopIndex: order.shopIndex,
-            messages: [], unreadSeller: 0, unreadBuyer: 0,
-            createdAt: Date.now()
-        };
-        conversations.push(conv);
+    _chatDraftText = 'À propos de ma commande ' + orderId + ' : ';
+    openChat(order.shopId, isSeller ? order.buyerId : null);
+}
+function _findConv(shopId, buyerId) {
+    for (var i = 0; i < conversations.length; i++) {
+        var cv = conversations[i];
+        if (cv.shopId === shopId && (buyerId ? cv.buyerId === buyerId : true)) return cv;
     }
-    var sysMsg = 'Commande ' + orderId + ' — ' + order.total.toLocaleString('fr-FR') + ' FCFA';
-    var exists = false;
-    for (var i = 0; i < conv.messages.length; i++) if (conv.messages[i].text === sysMsg) { exists = true; break; }
-    if (!exists) conv.messages.push({ fromRole: 'system', text: sysMsg, time: getTime(), isSystem: true, at: Date.now() });
-    openChat(convId);
+    return null;
+}
+function _upsertConvFromThread(t) {
+    var idx = -1;
+    for (var i = 0; i < shopsCatalog.length; i++) if (shopsCatalog[i].serverId === t.shopId) { idx = i; break; }
+    var cv = _findConv(t.shopId, t.buyerId);
+    if (!cv) {
+        cv = { shopId: t.shopId, buyerId: t.buyerId, shopIndex: idx, messages: [], unreadSeller: 0, unreadBuyer: 0, createdAt: Date.now() };
+        conversations.push(cv);
+    }
+    cv.shopIndex = idx; cv.participantName = t.role === 'seller' ? t.buyerName : t.shopName;
+    cv.buyerName = t.buyerName; cv.sellerName = t.shopName;
+    if (t.role === 'seller') cv.unreadSeller = t.unread; else cv.unreadBuyer = t.unread;
+    return cv;
 }
 function openBuyerProfile() {
     document.getElementById('buyer-name').textContent = userName;
@@ -3832,13 +3869,15 @@ function switchBuyerTab(t) {
 function renderBuyerTab() { if (buyerTab === 'orders') renderBuyerOrders(); else renderBuyerMessages(); }
 function renderBuyerMessages() {
     var c = document.getElementById('buyer-messages-tab');
-    var my = [];
-    for (var i = 0; i < conversations.length; i++) {
-        var cv = conversations[i];
-        if (cv.buyerPhone && cv.buyerPhone !== userPhone) continue;
-        if (!cv.buyerPhone && cv.buyerName !== userName) continue;
-        my.push(cv);
-    }
+    if (!GM.loggedIn()) { c.innerHTML = ''; return; }
+    GM.chatThreads().then(function (threads) {
+        var my = threads.filter(function (t) { return t.role === 'buyer'; }).map(_upsertConvFromThread);
+        _renderBuyerMessagesList(my);
+        updateMessageBadges();
+    }).catch(function () {});
+}
+function _renderBuyerMessagesList(my) {
+    var c = document.getElementById('buyer-messages-tab');
     if (my.length === 0) {
         c.innerHTML = '<div class="text-center py-10 text-gray-400 text-sm">Aucune conversation pour l\'instant.<br><span class="text-xs">Échangez avec un vendeur pour démarrer.</span></div>';
         return;
@@ -3846,11 +3885,11 @@ function renderBuyerMessages() {
     var h = '';
     for (var i = 0; i < my.length; i++) {
         var cv = my[i];
-        var last = cv.messages.length > 0 ? cv.messages[cv.messages.length-1].text : 'Nouvelle conversation';
+        var last = 'Ouvrir la conversation';
         var name = cv.sellerName || cv.participantName || '?';
         var _cvShop = shopsCatalog[cv.shopIndex];
         var _cvBadge = _cvShop ? renderShopBadge(_cvShop) : '';
-        h += '<div onclick="openChat(\''+cv.id+'\')" class="bg-white p-3 rounded-xl flex items-center gap-3 cursor-pointer">';
+        h += '<div onclick="openChat('+cv.shopId+')" class="bg-white p-3 rounded-xl flex items-center gap-3 cursor-pointer">';
         h += '<div class="bg-green-600 text-white rounded-full w-12 h-12 flex items-center justify-center font-bold">'+escapeHtml(name[0])+'</div>';
         h += '<div class="flex-1 min-w-0"><h4 class="font-bold text-sm flex items-center min-w-0"><span class="truncate">'+escapeHtml(name)+'</span>'+_cvBadge+'</h4><p class="text-xs text-gray-500 truncate">'+escapeHtml(last)+'</p></div>';
         if (cv.unreadBuyer && cv.unreadBuyer > 0) {
@@ -3862,13 +3901,14 @@ function renderBuyerMessages() {
 }
 function renderSellerMessages() {
     var c = document.getElementById('seller-messages-list');
-    var mine = [];
-    for (var i = 0; i < conversations.length; i++) {
-        var cv = conversations[i];
-        if (cv.id.indexOf('buyer-') !== 0 && cv.id.indexOf('conv-buyer-') !== 0) continue;
-        if (!_isConversationForMyShop(cv)) continue;
-        mine.push(cv);
-    }
+    if (!GM.loggedIn() || !myShop) { c.innerHTML = ''; return; }
+    GM.chatThreads().then(function (threads) {
+        var mine = threads.filter(function (t) { return t.role === 'seller'; }).map(_upsertConvFromThread);
+        _renderSellerMessagesList(mine);
+    }).catch(function () {});
+}
+function _renderSellerMessagesList(mine) {
+    var c = document.getElementById('seller-messages-list');
     if (mine.length === 0) {
         c.innerHTML = '<div class="text-center py-10 text-gray-400 text-sm">Aucun message client pour le moment.<br><span class="text-xs">Vos échanges avec les acheteurs apparaîtront ici.</span></div>';
         updateMessageBadges(); return;
@@ -3882,9 +3922,9 @@ function renderSellerMessages() {
     var h = '';
     for (var i = 0; i < mine.length; i++) {
         var cv = mine[i];
-        var last = cv.messages.length > 0 ? cv.messages[cv.messages.length-1].text : 'Nouveau message';
+        var last = 'Ouvrir la conversation';
         var name = cv.buyerName || cv.participantName || '?';
-        h += '<div onclick="openChat(\''+cv.id+'\')" class="bg-white p-3 rounded-xl flex items-center gap-3 cursor-pointer">';
+        h += '<div onclick="openChat('+cv.shopId+', '+cv.buyerId+')" class="bg-white p-3 rounded-xl flex items-center gap-3 cursor-pointer">';
         h += '<div class="bg-orange-500 text-white rounded-full w-12 h-12 flex items-center justify-center font-bold">'+escapeHtml(name[0])+'</div>';
         h += '<div class="flex-1 min-w-0"><h4 class="font-bold text-sm truncate">'+escapeHtml(name)+'</h4>';
         h += '<p class="text-xs text-gray-500 truncate">'+escapeHtml(last)+'</p></div>';
@@ -3896,25 +3936,42 @@ function renderSellerMessages() {
     c.innerHTML = h;
     updateMessageBadges();
 }
-function openChat(convId) {
-    currentChatId = convId;
-    var cv = null;
-    for (var i = 0; i < conversations.length; i++) if (conversations[i].id === convId) { cv = conversations[i]; break; }
-    if (!cv) return;
-    if (isSeller) cv.unreadSeller = 0; else cv.unreadBuyer = 0;
-    updateMessageBadges();
-    var displayName = isSeller ? (cv.buyerName || cv.participantName) : (cv.sellerName || cv.participantName);
+function openChat(shopId, buyerId) {
+    if (!GM.loggedIn()) { toast('Connectez-vous pour discuter.', 'error'); return; }
+    currentChatShopId = shopId; currentChatBuyerId = buyerId || null;
+    var cv = _findConv(shopId, buyerId) || { shopId: shopId, buyerId: buyerId, shopIndex: -1, messages: [], unreadSeller: 0, unreadBuyer: 0 };
+    for (var i = 0; i < shopsCatalog.length; i++) if (shopsCatalog[i].serverId === shopId) { cv.shopIndex = i; break; }
+    var displayName = isSeller ? (cv.buyerName || cv.participantName) : (cv.sellerName || cv.participantName || (shopsCatalog[cv.shopIndex] && shopsCatalog[cv.shopIndex].name));
     displayName = displayName || 'Contact';
     var _chatShop = shopsCatalog[cv.shopIndex];
     var _chatBadge = (!isSeller && _chatShop) ? renderShopBadge(_chatShop) : '';
     document.getElementById('chat-header-name').innerHTML = escapeHtml(displayName) + _chatBadge;
     document.getElementById('chat-header-avatar').textContent = displayName[0];
-    renderChatMessages(); renderChatProductBanner();
+    var inp = document.getElementById('chat-input');
+    if (inp) { inp.value = _chatDraftText || ''; _chatDraftText = null; }
+    renderChatProductBanner();
     showScreen('chat-screen');
+    _loadAndRenderChatMessages();
 }
+function _loadAndRenderChatMessages() {
+    var c = document.getElementById('chat-messages');
+    c.innerHTML = '<div class="text-center py-10 text-gray-400 text-xs">Chargement…</div>';
+    GM.chatMessages(currentChatShopId, currentChatBuyerId).then(function (msgs) {
+        var cv = _findConv(currentChatShopId, currentChatBuyerId);
+        if (cv) {
+            cv.messages = msgs.map(function (m) {
+                var mine = m.senderId === userId;
+                return { fromRole: mine ? (isSeller ? 'seller' : 'buyer') : (isSeller ? 'buyer' : 'seller'), text: m.body, time: _chatTime(m.createdAt), at: m.createdAt };
+            });
+            if (isSeller) cv.unreadSeller = 0; else cv.unreadBuyer = 0;
+        }
+        renderChatMessages();
+        updateMessageBadges();
+    }).catch(function (e) { c.innerHTML = '<div class="text-center py-10 text-gray-400 text-xs">Impossible de charger les messages.</div>'; });
+}
+function _chatTime(ms) { try { return new Date(ms).toLocaleString('fr-FR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }); } catch (e) { return ''; } }
 function renderChatMessages() {
-    var cv = null;
-    for (var i = 0; i < conversations.length; i++) if (conversations[i].id === currentChatId) { cv = conversations[i]; break; }
+    var cv = _findConv(currentChatShopId, currentChatBuyerId);
     if (!cv) return;
     var c = document.getElementById('chat-messages'), h = '';
     var myRole = isSeller ? 'seller' : 'buyer';
@@ -3936,27 +3993,18 @@ function renderChatMessages() {
     setTimeout(function(){ c.scrollTop = c.scrollHeight; }, 100);
 }
 function sendMessage() {
-    var inp = document.getElementById('chat-input');
-    var txt = inp.value.trim(); if (!txt) return;
+    return _sendChatText(document.getElementById('chat-input'));
+}
+function _sendChatText(inpOrNull, textOverride) {
+    var inp = inpOrNull || document.getElementById('chat-input');
+    var txt = textOverride != null ? textOverride : (inp ? inp.value.trim() : '');
+    if (!txt) return;
     if (txt.length > 2000) { toast('Message trop long.', 'error'); return; }
-    var cv = null;
-    for (var i = 0; i < conversations.length; i++) if (conversations[i].id === currentChatId) { cv = conversations[i]; break; }
-    if (!cv) return;
-    var time = getTime();
-    var fromRole = isSeller ? 'seller' : 'buyer';
-    cv.messages.push({
-        fromRole: fromRole,
-        text: txt, time: time, at: Date.now(),
-        senderName: isSeller ? (myShop ? myShop.shopName : 'Vendeur') : userName,
-        senderPhone: isSeller ? (myShop ? myShop.phone : '') : userPhone
-    });
-    if (fromRole === 'seller') { cv.unreadBuyer = (cv.unreadBuyer || 0) + 1; cv.unreadSeller = 0; }
-    else { cv.unreadSeller = (cv.unreadSeller || 0) + 1; cv.unreadBuyer = 0; }
-    inp.value = '';
-    renderChatMessages(); updateMessageBadges();
-    var role = isSeller ? 'buyer' : 'seller';
-    addNotification(role, 'Nouveau message', txt.substring(0, 80), 'info');
-    _stateDirty = true;
+    if (!currentChatShopId) return;
+    if (inp) inp.value = '';
+    GM.sendChatMessage(currentChatShopId, txt, currentChatBuyerId).then(function () {
+        _loadAndRenderChatMessages();
+    }).catch(function (e) { toast(e.message, 'error', 5000); if (inp) inp.value = txt; });
 }
 function closeChat() { if (isSeller) showScreen('seller-messages-screen'); else showScreen('buyer-profile-screen'); }
 
@@ -3965,8 +4013,7 @@ function renderChatProductBanner() {
     var actions = document.getElementById('chat-product-actions');
     var statusEl = document.getElementById('chat-product-status');
     if (!banner) return;
-    var cv = null;
-    for (var i = 0; i < conversations.length; i++) if (conversations[i].id === currentChatId) { cv = conversations[i]; break; }
+    var cv = _findConv(currentChatShopId, currentChatBuyerId);
     if (!cv || !cv.negotiatedProduct) { banner.classList.add('hidden'); return; }
     var p = cv.negotiatedProduct;
     document.getElementById('chat-product-img').src = p.image || '';
@@ -3986,8 +4033,7 @@ function renderChatProductBanner() {
 }
 function acceptChatProduct() {
     if (isSeller) { toast('Seul l\'acheteur peut accepter.', 'warn'); return; }
-    var cv = null;
-    for (var i = 0; i < conversations.length; i++) if (conversations[i].id === currentChatId) { cv = conversations[i]; break; }
+    var cv = _findConv(currentChatShopId, currentChatBuyerId);
     if (!cv || !cv.negotiatedProduct) return;
     if (cv.negotiationStatus !== 'pending') return;
     var p = cv.negotiatedProduct;
@@ -3995,9 +4041,9 @@ function acceptChatProduct() {
     if (stock !== null && stock < (p.qty || 1)) { toast('Stock insuffisant.', 'error'); return; }
     _addItemToCart({ shopIndex: p.shopIndex, name: p.name, price: p.priceLabel, priceNum: p.price, image: p.image, qty: p.qty || 1, hasDelivery: true, hasWarranty: false, warrantyText: '' });
     cv.negotiationStatus = 'accepted';
-    cv.messages.push({ fromRole: 'buyer', text: 'J\'accepte ce produit.', time: getTime(), isSystem: true, at: Date.now() });
     updateCartUI(); _stateDirty = true;
-    renderChatMessages(); renderChatProductBanner();
+    _sendChatText(null, 'J\'accepte ce produit.');
+    renderChatProductBanner();
     haptic([20, 30, 20]);
     setTimeout(function() {
         gmConfirm('Produit ajouté au panier.\n\nAller au panier ?', 'Panier', { confirmText: 'Voir le panier' })
@@ -4006,17 +4052,16 @@ function acceptChatProduct() {
 }
 function refuseChatProduct() {
     if (isSeller) { toast('Seul l\'acheteur peut refuser.', 'warn'); return; }
-    var cv = null;
-    for (var i = 0; i < conversations.length; i++) if (conversations[i].id === currentChatId) { cv = conversations[i]; break; }
+    var cv = _findConv(currentChatShopId, currentChatBuyerId);
     if (!cv || !cv.negotiatedProduct) return;
     if (cv.negotiationStatus !== 'pending') return;
     gmConfirm('Refuser cette négociation ?', 'Refus', { danger: true, confirmText: 'Refuser' })
     .then(function(ok) {
         if (!ok) return;
         cv.negotiationStatus = 'refused';
-        cv.messages.push({ fromRole: 'buyer', text: 'Je décide de ne pas donner suite.', time: getTime(), isSystem: true, at: Date.now() });
         _stateDirty = true;
-        renderChatMessages(); renderChatProductBanner();
+        _sendChatText(null, 'Je décide de ne pas donner suite.');
+        renderChatProductBanner();
     });
 }
 
@@ -4035,7 +4080,8 @@ function showProductScreen(name, price, image, rating, reviews, desc, hasDeliver
         hasWarranty: !!hasWarranty, warrantyText: warrantyText || '',
         stock: extra.stock !== undefined ? extra.stock : '—',
         category: extra.category || '—',
-        shopIndex: currentShopIndex
+        shopIndex: currentShopIndex,
+        serverId: extra.serverId
     };
     _productQty = 1;
     document.getElementById('product-name').textContent = name;
@@ -4205,25 +4251,14 @@ function openShopProductFromOtherShop(shopIdx, prodIdx) {
     var s = shopsCatalog[shopIdx]; if (!s) return;
     var p = s.products[prodIdx]; if (!p) return;
     productScreenOrigin = 'shop-profile-screen';
-    showProductScreen(p.name, p.price.toLocaleString('fr-FR') + ' FCFA', getProductMainImage(p), p.rating, p.reviews, p.desc, p.hasDelivery, 'shop-profile-screen', p.images, p.hasWarranty, p.warrantyText, { stock: p.stock, category: p.category });
+    showProductScreen(p.name, p.price.toLocaleString('fr-FR') + ' FCFA', getProductMainImage(p), p.rating, p.reviews, p.desc, p.hasDelivery, 'shop-profile-screen', p.images, p.hasWarranty, p.warrantyText, { stock: p.stock, category: p.category, serverId: p.serverId });
 }
 function openProductChat() {
-    if (!_currentProductData) return;
-    var s = shopsCatalog[currentShopIndex]; if (!s) return;
-    var convId = 'conv-buyer-' + currentShopIndex;
-    var conv = null;
-    for (var i = 0; i < conversations.length; i++) if (conversations[i].id === convId) { conv = conversations[i]; break; }
-    if (!conv) {
-        conv = {
-            id: convId, participantName: s.name,
-            buyerName: userName, buyerPhone: userPhone,
-            sellerName: s.name, sellerPhone: s.phone,
-            participantRole: 'seller', shopIndex: currentShopIndex,
-            messages: [], unreadSeller: 0, unreadBuyer: 0,
-            createdAt: Date.now()
-        };
-        conversations.push(conv);
-    }
+    if (!_currentProductData || !GM.loggedIn()) return;
+    var s = shopsCatalog[currentShopIndex]; if (!s || !s.serverId) return;
+    var conv = _findConv(s.serverId, null) || { shopId: s.serverId, buyerId: null, shopIndex: currentShopIndex, messages: [], unreadSeller: 0, unreadBuyer: 0 };
+    if (conversations.indexOf(conv) < 0) conversations.push(conv);
+    conv.participantName = s.name; conv.sellerName = s.name;
     conv.productContext = _currentProductData.name;
     conv.negotiatedProduct = {
         name: _currentProductData.name, price: _currentProductData.price,
@@ -4231,16 +4266,11 @@ function openProductChat() {
         shopIndex: currentShopIndex, qty: _productQty || 1
     };
     conv.negotiationStatus = 'pending';
-    if (conv.messages.length === 0) {
-        conv.messages.push({
-            fromRole: 'buyer',
-            text: 'Bonjour, je suis intéressé(e) par votre produit "' + _currentProductData.name + '" à ' + _currentProductData.priceLabel + '. Est-il disponible ?',
-            time: getTime(), isProductInquiry: true, at: Date.now(),
-            senderName: userName, senderPhone: userPhone
-        });
-    }
     _stateDirty = true;
-    openChat(convId);
+    openChat(s.serverId, null);
+    setTimeout(function () {
+        _sendChatText(null, 'Bonjour, je suis intéressé(e) par votre produit "' + _currentProductData.name + '" à ' + _currentProductData.priceLabel + '. Est-il disponible ?');
+    }, 300);
 }
 function openNegotiateDelivery() {
     if (!_currentProductData) return;
@@ -4249,21 +4279,11 @@ function openNegotiateDelivery() {
     sendNegotiationMessage(msg);
 }
 function sendNegotiationMessage(text) {
-    var s = shopsCatalog[currentShopIndex]; if (!s) return;
-    var convId = 'conv-buyer-' + currentShopIndex;
-    var conv = null;
-    for (var i = 0; i < conversations.length; i++) if (conversations[i].id === convId) { conv = conversations[i]; break; }
-    if (!conv) {
-        conv = {
-            id: convId, participantName: s.name,
-            buyerName: userName, buyerPhone: userPhone,
-            sellerName: s.name, sellerPhone: s.phone,
-            participantRole: 'seller', shopIndex: currentShopIndex,
-            messages: [], unreadSeller: 0, unreadBuyer: 0,
-            createdAt: Date.now()
-        };
-        conversations.push(conv);
-    }
+    if (!GM.loggedIn()) return;
+    var s = shopsCatalog[currentShopIndex]; if (!s || !s.serverId) return;
+    var conv = _findConv(s.serverId, null) || { shopId: s.serverId, buyerId: null, shopIndex: currentShopIndex, messages: [], unreadSeller: 0, unreadBuyer: 0 };
+    if (conversations.indexOf(conv) < 0) conversations.push(conv);
+    conv.participantName = s.name; conv.sellerName = s.name;
     if (!conv.negotiatedProduct && _currentProductData) {
         conv.negotiatedProduct = {
             name: _currentProductData.name, price: _currentProductData.price,
@@ -4273,9 +4293,9 @@ function sendNegotiationMessage(text) {
         conv.negotiationStatus = 'pending';
     }
     conv.productContext = _currentProductData ? _currentProductData.name : null;
-    conv.messages.push({ fromRole: 'buyer', text: text, time: getTime(), isNegotiation: true, at: Date.now(), senderName: userName, senderPhone: userPhone });
     _stateDirty = true;
-    openChat(convId);
+    openChat(s.serverId, null);
+    setTimeout(function () { _sendChatText(null, text); }, 300);
 }
 
 /* =========================================================
@@ -4530,7 +4550,7 @@ function openProductFromSearch(shopIndex, productIndex) {
     currentShopIndex = shopIndex;
     var s = shopsCatalog[shopIndex]; if (!s) return;
     var p = s.products[productIndex]; if (!p) return;
-    showProductScreen(p.name, p.price.toLocaleString('fr-FR') + ' FCFA', getProductMainImage(p), p.rating, p.reviews, p.desc, p.hasDelivery, 'home-screen', p.images, p.hasWarranty, p.warrantyText, { stock: p.stock, category: p.category });
+    showProductScreen(p.name, p.price.toLocaleString('fr-FR') + ' FCFA', getProductMainImage(p), p.rating, p.reviews, p.desc, p.hasDelivery, 'home-screen', p.images, p.hasWarranty, p.warrantyText, { stock: p.stock, category: p.category, serverId: p.serverId });
 }
 
 /* =========================================================
@@ -4602,7 +4622,7 @@ function submitRating() {
             }
             if (myShop.sixStarPoints >= GOLD_CERTIFICATION_THRESHOLD && !myShop.isGoldenCertified) {
                 myShop.isGoldenCertified = true;
-                setTimeout(function() { toast('🏆 Félicitations ! Golden Certif débloquée (100 000 avis 6★).', 'success', 6000); }, 900);
+                setTimeout(function() { toast('Félicitations ! Golden Certif débloquée (100 000 avis 6 étoiles).', 'success', 6000); }, 900);
             }
             syncMyShopToCatalog();
         }
