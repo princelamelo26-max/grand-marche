@@ -59,9 +59,6 @@ select {
     background-size: 16px;
     padding-right: 40px;
 }
-.dark select {
-    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23D1D5DB' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
-}
 
 .icon { width: 24px; height: 24px; }
 .nav-btn { display: flex; flex-direction: column; align-items: center; font-size: 11px; }
@@ -309,194 +306,11 @@ select {
 .gm-modal-btn.confirm { background: #10b981; color: #fff; }
 .gm-modal-btn.danger { background: #ef4444; color: #fff; }
 
-/* ===== MODE SOMBRE — base ===== */
-body.dark-body { background: #000; }
-.dark.app-container { background: #111827 !important; }
-.dark .bg-white { background-color: #1f2937 !important; color: #f3f4f6 !important; }
-.dark .bg-gray-50 { background-color: #111827 !important; }
-.dark .bg-gray-100 { background-color: #374151 !important; }
-.dark .bg-gray-200 { background-color: #4b5563 !important; }
-.dark .bg-blue-50 { background-color: #1e3a5f !important; }
-.dark .bg-green-50 { background-color: #14532d !important; }
-.dark .bg-green-100 { background-color: #166534 !important; }
-.dark .bg-orange-50 { background-color: #7c2d12 !important; }
-.dark .bg-orange-100 { background-color: #9a3412 !important; }
-.dark .bg-red-50 { background-color: #7f1d1d !important; }
-.dark .bg-yellow-50 { background-color: #713f12 !important; }
-.dark .bg-blue-100 { background-color: #1e40af !important; }
-.dark .bg-yellow-100 { background-color: #854d0e !important; }
-.dark .bg-amber-50 { background-color: #78350f !important; }
-.dark .bg-purple-100 { background-color: #6b21a8 !important; }
-.dark .bg-emerald-100 { background-color: #064e3b !important; }
-
-.dark .text-gray-800, .dark .text-gray-700, .dark .text-gray-900 { color: #f3f4f6 !important; }
-.dark .text-gray-600 { color: #d1d5db !important; }
-.dark .text-gray-500 { color: #9ca3af !important; }
-.dark .text-gray-400 { color: #9ca3af !important; }
-
-.dark .border, .dark .border-gray-100, .dark .border-gray-200, .dark .border-gray-300 { border-color: #374151 !important; }
-.dark .border-orange-200 { border-color: #9a3412 !important; }
-.dark .border-blue-200 { border-color: #1e40af !important; }
-.dark .border-green-200 { border-color: #166534 !important; }
-.dark .border-amber-200 { border-color: #78350f !important; }
-.dark .border-red-200 { border-color: #7f1d1d !important; }
-.dark .border-yellow-200 { border-color: #713f12 !important; }
-.dark .border-emerald-200 { border-color: #064e3b !important; }
-
-.dark input, .dark textarea, .dark select {
-    background-color: #1f2937 !important;
-    color: #f3f4f6 !important;
-    border-color: #4b5563 !important;
-}
-.dark #product-main-media, .dark #preview-main-media { background: #000 !important; }
-.dark .chat-bubble-other { background: #374151; color: #f3f4f6; }
-.dark .chat-bubble-system { background: rgba(255,255,255,0.08); color: #9ca3af; }
-.dark .negotiation-message {
-    background: linear-gradient(135deg, #78350f, #92400e) !important;
-    color: #fef3c7 !important;
-}
-.dark .gm-modal { background: #1f2937; }
-.dark .gm-modal-title { color: #f3f4f6; }
-.dark .gm-modal-message { color: #d1d5db; }
-.dark .gm-modal-input { background: #111827; color: #f3f4f6; border-color: #374151; }
-.dark .gm-modal-btn.cancel { background: #374151; color: #d1d5db; }
+body
 
 /* Textes colorés sur fond sombre */
-.dark .text-orange-400, .dark .text-orange-500, .dark .text-orange-600 { color: #fdba74 !important; }
-.dark .text-green-500,  .dark .text-green-600,  .dark .text-green-700 { color: #86efac !important; }
-.dark .text-green-800  { color: #bbf7d0 !important; }
-.dark .text-blue-500,   .dark .text-blue-600   { color: #93c5fd !important; }
-.dark .text-blue-700,   .dark .text-blue-800   { color: #bfdbfe !important; }
-.dark .text-red-400,    .dark .text-red-500,
-.dark .text-red-600,    .dark .text-red-700    { color: #fca5a5 !important; }
-.dark .text-yellow-500, .dark .text-yellow-600 { color: #fde047 !important; }
-.dark .text-amber-700,  .dark .text-amber-800  { color: #fcd34d !important; }
-.dark .text-emerald-500,.dark .text-emerald-600{ color: #6ee7b7 !important; }
-.dark .text-emerald-700{ color: #a7f3d0 !important; }
-.dark .text-purple-600, .dark .text-purple-700 { color: #d8b4fe !important; }
-.dark .text-indigo-600, .dark .text-indigo-700 { color: #a5b4fc !important; }
 
 /* Textes colorés sur fonds pastel */
-.dark .bg-green-50  .text-green-700,
-.dark .bg-green-50  .text-green-800,
-.dark .bg-green-100 .text-green-700,
-.dark .bg-green-100 .text-green-800  { color: #bbf7d0 !important; }
-.dark .bg-blue-50   .text-blue-600,
-.dark .bg-blue-50   .text-blue-700,
-.dark .bg-blue-100  .text-blue-700   { color: #bfdbfe !important; }
-.dark .bg-amber-50  .text-amber-800,
-.dark .bg-yellow-50 .text-yellow-700,
-.dark .bg-yellow-50 .text-yellow-800 { color: #fde68a !important; }
-.dark .bg-red-50    .text-red-600,
-.dark .bg-red-50    .text-red-700,
-.dark .bg-red-100   .text-red-700    { color: #fecaca !important; }
-.dark .bg-orange-50 .text-orange-600,
-.dark .bg-orange-50 .text-orange-700,
-.dark .bg-orange-50 .text-orange-800,
-.dark .bg-orange-100 .text-orange-700 { color: #fed7aa !important; }
-.dark .bg-purple-100 .text-purple-700 { color: #e9d5ff !important; }
-.dark .bg-indigo-100 .text-indigo-700 { color: #c7d2fe !important; }
-.dark .bg-emerald-100 .text-emerald-700 { color: #a7f3d0 !important; }
-
-.dark .bg-yellow-100 { background:#78350f !important; }
-.dark .bg-blue-100   { background:#1e3a8a !important; }
-.dark .bg-indigo-100 { background:#312e81 !important; }
-.dark .bg-purple-100 { background:#581c87 !important; }
-.dark .bg-orange-100 { background:#7c2d12 !important; }
-.dark .bg-gray-100   { background:#374151 !important; }
-
-.dark input::placeholder,
-.dark textarea::placeholder { color: #6b7280 !important; }
-
-.dark .escrow-pending  { background:#78350f !important; color:#fde68a !important; }
-.dark .escrow-released { background:#064e3b !important; color:#6ee7b7 !important; }
-.dark .escrow-refunded { background:#7f1d1d !important; color:#fecaca !important; }
-.dark .search-tag { background:#1f2937 !important; color:#e5e7eb !important; }
-.dark #receipt-content { background:#1f2937 !important; }
-.dark #receipt-content .text-gray-500 { color:#d1d5db !important; }
-.dark .chat-bubble-system { background:rgba(255,255,255,0.10); color:#d1d5db; }
-.dark .tl-date { color:#9ca3af; }
-
-/* =========================================================
-   DARK MODE — Correctifs v12.0 (mode client)
-   ========================================================= */
-
-.dark #home-top-shops > div {
-    background: #1f2937 !important;
-    border-color: #374151 !important;
-}
-.dark #home-top-shops > div:hover { background: #111827 !important; }
-.dark #home-top-shops h4 { color: #f3f4f6 !important; }
-.dark #home-top-shops p  { color: #d1d5db !important; }
-.dark #home-top-shops .text-yellow-500 { color: #fbbf24 !important; }
-
-.dark .from-yellow-50  { --tw-gradient-from: #78350f !important; }
-.dark .to-yellow-100   { --tw-gradient-to: #854d0e !important; }
-.dark .from-gray-50    { --tw-gradient-from: #111827 !important; }
-.dark .to-gray-100     { --tw-gradient-to: #1f2937 !important; }
-.dark .from-orange-50  { --tw-gradient-from: #7c2d12 !important; }
-.dark .to-orange-100   { --tw-gradient-to: #9a3412 !important; }
-.dark .border-yellow-300 { border-color: #78350f !important; }
-.dark .border-orange-300 { border-color: #9a3412 !important; }
-.dark .border-gray-300   { border-color: #374151 !important; }
-
-.dark .bg-green-100 .text-green-800 { color: #bbf7d0 !important; }
-.dark .bg-green-100 .text-green-600 { color: #86efac !important; }
-.dark .bg-green-100 .text-green-700 { color: #86efac !important; }
-
-.dark .rounded-full.border.bg-white,
-.dark .rounded-full.border.bg-gray-50 {
-    background: #1f2937 !important;
-    border-color: #374151 !important;
-    color: #e5e7eb !important;
-}
-.dark .rounded-full.border.bg-white input,
-.dark .rounded-full.border.bg-gray-50 input { color: #f3f4f6 !important; }
-
-.dark .bg-white.rounded-xl.border {
-    background: #1f2937 !important;
-    border-color: #374151 !important;
-}
-.dark .bg-white.rounded-xl.border h4 { color: #f3f4f6 !important; }
-.dark .bg-white.rounded-xl.border p   { color: #9ca3af !important; }
-
-.dark .bg-white.border-t { border-color: #374151 !important; }
-.dark .nav-btn.text-gray-400 { color: #9ca3af !important; }
-.dark .nav-btn.text-green-600 { color: #4ade80 !important; }
-
-.dark #buyer-wallet-balance { color: #ffffff !important; }
-.dark #buyer-wallet-escrow,
-.dark #buyer-wallet-spent,
-.dark #buyer-wallet-refunded { color: #ffffff !important; }
-
-.dark .escrow-badge { box-shadow: 0 0 0 1px rgba(255,255,255,0.05); }
-
-.dark .text-gray-400 { color: #9ca3af !important; }
-.dark .text-gray-300 { color: #6b7280 !important; }
-
-.dark .bg-amber-50 { background: #78350f !important; }
-.dark .bg-amber-50 .text-amber-800,
-.dark .bg-amber-50 .text-amber-700 { color: #fde68a !important; }
-.dark .border-amber-300 { border-color: #b45309 !important; }
-
-.dark .bg-green-600 { background-color: #059669 !important; color: #fff !important; }
-.dark .bg-orange-500 { background-color: #ea580c !important; color: #fff !important; }
-.dark .bg-blue-600 { background-color: #2563eb !important; color: #fff !important; }
-
-.dark #shop-profile-screen .bg-white { background: #1f2937 !important; }
-.dark #shop-profile-screen .bg-white h2 { color: #f3f4f6 !important; }
-.dark #shop-profile-screen .bg-white p { color: #d1d5db !important; }
-
-.dark .bg-gray-100.rounded-full { background: #374151 !important; }
-
-.dark .bg-amber-50 { background: #78350f !important; }
-.dark .bg-amber-50 .text-amber-800 { color: #fde68a !important; }
-.dark .border-amber-200 { border-color: #92400e !important; }
-
-.dark .cat-pill.active .cat-label { color: #f3f4f6 !important; }
-
-.dark .bg-green-100 { background-color: #166534 !important; }
-.dark .bg-blue-100   { background-color: #1e40af !important; }
 
 /* ===== CATÉGORIES SCROLL ===== */
 .cat-scroll {
@@ -683,16 +497,6 @@ body.dark-body { background: #000; }
     letter-spacing: 0.3px;
 }
 
-/* ===== DARK MODE SPÉCIFIQUE ===== */
-.dark .cat-pill { background: #1f2937; border-color: #374151; }
-.dark .cat-pill .cat-label { color: #e5e7eb; }
-.dark .cat-pill.active { background: #064e3b; border-color: #10b981; }
-.dark .search-tag { background: #374151; color: #e5e7eb; }
-.dark .reorder-card { background: #1f2937; border-color: #374151; }
-.dark .tl-dot { border-color: #1f2937; }
-.dark .tl-label { color: #f3f4f6; }
-.dark #shop-qr-container { background: #fff; }
-
 /* =========================================================
    WALLET ACHETEUR
    ========================================================= */
@@ -865,17 +669,6 @@ body.dark-body { background: #000; }
     background: #f3f4f6;
     color: #6b7280;
 }
-.dark .trophy-card {
-    background: #1f2937;
-    border-color: #374151;
-}
-.dark .trophy-card h3 { color: #f9fafb; }
-.dark .trophy-card p { color: #9ca3af; }
-.dark .trophy-hero-card {
-    background: #302713;
-    border-color: #6b541b;
-}
-.dark .trophy-hero-card h2 { color: #f9fafb; }
 
 /* =========================================================
    BADGE DE CERTIFICATION (bleu / golden) — v14.2
@@ -939,12 +732,6 @@ body.dark-body { background: #000; }
 @media (prefers-reduced-motion: reduce) {
     .shop-badge-gold { animation: none; }
 }
-.dark .shop-badge-blue {
-    background: linear-gradient(135deg, #60A5FA 0%, #1D4ED8 100%);
-}
-.dark .shop-badge-gold {
-    background: radial-gradient(circle at 30% 30%, #FDE68A 0%, #F59E0B 45%, #B45309 100%);
-}
 
 /* =========================================================
    AJOUTS v14.3 — Trophées & états vides
@@ -970,3 +757,193 @@ body.dark-body { background: #000; }
     opacity: .35;
 }
 .prod-badge.sponsored { background: linear-gradient(135deg,#F59E0B,#F97316); color: #fff; }
+
+/* =========================================================
+   MODE SOMBRE — bloc unique et complet
+   Règle d'or : chaque classe de couleur utilisée dans l'app
+   (HTML + JS) a ici son équivalent sombre. Si une nouvelle
+   classe "bg-/text-/border-{couleur}-{nuance}" est ajoutée au
+   code un jour, elle doit être ajoutée ici aussi.
+   ========================================================= */
+
+/* ---- Base : tout texte sans classe de couleur explicite
+   doit rester lisible (hérite de ce gris clair) ---- */
+.dark.app-container,
+body.dark-body {
+    color: #e5e7eb;
+}
+.dark.app-container { background: #111827 !important; }
+
+/* ---- Fonds neutres ---- */
+.dark .bg-white      { background-color: #1f2937 !important; color: #f3f4f6 !important; }
+.dark .bg-gray-50     { background-color: #111827 !important; }
+.dark .bg-gray-100    { background-color: #374151 !important; }
+.dark .bg-gray-200    { background-color: #4b5563 !important; }
+.dark .bg-gray-300    { background-color: #6b7280 !important; }
+.dark .bg-gray-400    { background-color: #9ca3af !important; }
+
+/* ---- Fonds pastel (50/100) -> teintes profondes de la même couleur ---- */
+.dark .bg-blue-50    { background-color: #1e3a5f !important; }
+.dark .bg-blue-100   { background-color: #1e40af !important; }
+.dark .bg-green-50   { background-color: #14532d !important; }
+.dark .bg-green-100  { background-color: #166534 !important; }
+.dark .bg-orange-50  { background-color: #7c2d12 !important; }
+.dark .bg-orange-100 { background-color: #9a3412 !important; }
+.dark .bg-red-50     { background-color: #7f1d1d !important; }
+.dark .bg-red-100    { background-color: #991b1b !important; }
+.dark .bg-yellow-50  { background-color: #713f12 !important; }
+.dark .bg-yellow-100 { background-color: #854d0e !important; }
+.dark .bg-amber-50   { background-color: #78350f !important; }
+.dark .bg-purple-100 { background-color: #6b21a8 !important; }
+.dark .bg-indigo-100 { background-color: #312e81 !important; }
+.dark .bg-emerald-100 { background-color: #064e3b !important; }
+
+/* ---- Fonds vifs (boutons/bannières, 500-900) : laissés tels quels,
+   déjà assez saturés pour fonctionner sur fond sombre ---- */
+
+/* ---- Textes neutres ---- */
+.dark .text-gray-800, .dark .text-gray-700, .dark .text-gray-900 { color: #f3f4f6 !important; }
+.dark .text-gray-600 { color: #d1d5db !important; }
+.dark .text-gray-500 { color: #9ca3af !important; }
+.dark .text-gray-400 { color: #9ca3af !important; }
+.dark .text-gray-300 { color: #6b7280 !important; }
+.dark .text-black    { color: #f9fafb !important; }
+
+/* ---- Textes de couleur : chaque nuance 400 à 800 d'une même
+   famille est ramenée à une seule teinte claire et lisible,
+   pour que la couleur reste reconnaissable ET cohérente ---- */
+.dark .text-blue-400, .dark .text-blue-500, .dark .text-blue-600,
+.dark .text-blue-700, .dark .text-blue-800 { color: #93c5fd !important; }
+
+.dark .text-green-500, .dark .text-green-600, .dark .text-green-700,
+.dark .text-green-800 { color: #86efac !important; }
+
+.dark .text-emerald-500, .dark .text-emerald-600, .dark .text-emerald-700 { color: #6ee7b7 !important; }
+
+.dark .text-red-300, .dark .text-red-400, .dark .text-red-500,
+.dark .text-red-600, .dark .text-red-700, .dark .text-red-800 { color: #fca5a5 !important; }
+
+.dark .text-orange-300, .dark .text-orange-400, .dark .text-orange-500,
+.dark .text-orange-600, .dark .text-orange-700, .dark .text-orange-800 { color: #fdba74 !important; }
+
+.dark .text-yellow-400, .dark .text-yellow-500, .dark .text-yellow-600,
+.dark .text-yellow-700, .dark .text-yellow-800 { color: #fde047 !important; }
+
+.dark .text-amber-600, .dark .text-amber-700, .dark .text-amber-800 { color: #fcd34d !important; }
+
+.dark .text-purple-700 { color: #d8b4fe !important; }
+.dark .text-indigo-700 { color: #a5b4fc !important; }
+
+/* texte clair déjà pensé pour un fond coloré (bannières) : inchangé */
+.dark .text-green-100 { color: #dcfce7 !important; }
+
+/* ---- Bordures ---- */
+.dark .border, .dark .border-gray-100, .dark .border-gray-200,
+.dark .border-gray-300 { border-color: #374151 !important; }
+
+.dark .border-blue-200, .dark .border-blue-500   { border-color: #1e40af !important; }
+.dark .border-green-100, .dark .border-green-200, .dark .border-green-300,
+.dark .border-green-500, .dark .border-green-600 { border-color: #166534 !important; }
+.dark .border-emerald-500 { border-color: #047857 !important; }
+.dark .border-orange-200, .dark .border-orange-300, .dark .border-orange-400,
+.dark .border-orange-500 { border-color: #9a3412 !important; }
+.dark .border-red-200, .dark .border-red-500 { border-color: #991b1b !important; }
+.dark .border-yellow-200, .dark .border-yellow-300 { border-color: #713f12 !important; }
+.dark .border-amber-200, .dark .border-amber-300, .dark .border-amber-400 { border-color: #78350f !important; }
+.dark .border-purple-500 { border-color: #7e22ce !important; }
+
+/* ---- Combinaisons fond pastel + texte de la même famille
+   (ex: bandeau vert clair avec texte vert foncé) ---- */
+.dark .bg-blue-50 .text-blue-600, .dark .bg-blue-50 .text-blue-700,
+.dark .bg-blue-100 .text-blue-700 { color: #bfdbfe !important; }
+.dark .bg-green-50 .text-green-700, .dark .bg-green-50 .text-green-800,
+.dark .bg-green-100 .text-green-600, .dark .bg-green-100 .text-green-700,
+.dark .bg-green-100 .text-green-800 { color: #bbf7d0 !important; }
+.dark .bg-orange-50 .text-orange-600, .dark .bg-orange-50 .text-orange-700,
+.dark .bg-orange-50 .text-orange-800, .dark .bg-orange-100 .text-orange-700 { color: #fed7aa !important; }
+.dark .bg-red-50 .text-red-600, .dark .bg-red-50 .text-red-700,
+.dark .bg-red-100 .text-red-700 { color: #fecaca !important; }
+.dark .bg-yellow-50 .text-yellow-700, .dark .bg-yellow-50 .text-yellow-800 { color: #fde68a !important; }
+.dark .bg-amber-50 .text-amber-700, .dark .bg-amber-50 .text-amber-800 { color: #fde68a !important; }
+.dark .bg-purple-100 .text-purple-700 { color: #e9d5ff !important; }
+.dark .bg-indigo-100 .text-indigo-700 { color: #c7d2fe !important; }
+.dark .bg-emerald-100 .text-emerald-700 { color: #a7f3d0 !important; }
+
+/* ---- Champs de formulaire ---- */
+.dark input, .dark textarea, .dark select {
+    background-color: #1f2937 !important;
+    color: #f3f4f6 !important;
+    border-color: #4b5563 !important;
+}
+.dark input::placeholder, .dark textarea::placeholder { color: #6b7280 !important; }
+
+/* ---- Composants spécifiques ---- */
+.dark #product-main-media, .dark #preview-main-media { background: #000 !important; }
+.dark .chat-bubble-other { background: #374151; color: #f3f4f6; }
+.dark .chat-bubble-system { background: rgba(255,255,255,0.10); color: #d1d5db; }
+.dark .negotiation-message { background: linear-gradient(135deg, #78350f, #92400e) !important; color: #fef3c7 !important; }
+
+.dark .gm-modal { background: #1f2937; }
+.dark .gm-modal-title { color: #f3f4f6; }
+.dark .gm-modal-message { color: #d1d5db; }
+.dark .gm-modal-input { background: #111827; color: #f3f4f6; border-color: #374151; }
+.dark .gm-modal-btn.cancel { background: #374151; color: #d1d5db; }
+
+.dark .escrow-pending  { background:#78350f !important; color:#fde68a !important; }
+.dark .escrow-released { background:#064e3b !important; color:#6ee7b7 !important; }
+.dark .escrow-refunded { background:#7f1d1d !important; color:#fecaca !important; }
+.dark .escrow-badge { box-shadow: 0 0 0 1px rgba(255,255,255,0.05); }
+
+.dark .search-tag { background:#1f2937 !important; color:#e5e7eb !important; }
+.dark #receipt-content { background:#1f2937 !important; }
+.dark #receipt-content .text-gray-500 { color:#d1d5db !important; }
+.dark .tl-date { color:#9ca3af; }
+
+.dark .cat-pill { background: #1f2937; border-color: #374151; }
+.dark .cat-pill .cat-label { color: #e5e7eb; }
+.dark .cat-pill.active { background: #064e3b; border-color: #10b981; }
+.dark .cat-pill.active .cat-label { color: #f3f4f6 !important; }
+
+.dark #home-top-shops > div { background: #1f2937 !important; border-color: #374151 !important; }
+.dark #home-top-shops > div:hover { background: #111827 !important; }
+.dark #home-top-shops h4 { color: #f3f4f6 !important; }
+.dark #home-top-shops p  { color: #d1d5db !important; }
+.dark #home-top-shops .text-yellow-500 { color: #fbbf24 !important; }
+
+.dark .from-yellow-50 { --tw-gradient-from: #78350f !important; }
+.dark .to-yellow-100  { --tw-gradient-to: #854d0e !important; }
+.dark .from-gray-50   { --tw-gradient-from: #111827 !important; }
+.dark .to-gray-100    { --tw-gradient-to: #1f2937 !important; }
+.dark .from-orange-50 { --tw-gradient-from: #7c2d12 !important; }
+.dark .to-orange-100  { --tw-gradient-to: #9a3412 !important; }
+
+.dark .rounded-full.border.bg-white, .dark .rounded-full.border.bg-gray-50 {
+    background: #1f2937 !important; border-color: #374151 !important; color: #e5e7eb !important;
+}
+.dark .rounded-full.border.bg-white input, .dark .rounded-full.border.bg-gray-50 input { color: #f3f4f6 !important; }
+
+.dark .bg-white.rounded-xl.border { background: #1f2937 !important; border-color: #374151 !important; }
+.dark .bg-white.rounded-xl.border h4 { color: #f3f4f6 !important; }
+.dark .bg-white.rounded-xl.border p  { color: #9ca3af !important; }
+.dark .bg-white.border-t { border-color: #374151 !important; }
+
+.dark .nav-btn.text-gray-400 { color: #9ca3af !important; }
+.dark .nav-btn.text-green-600 { color: #4ade80 !important; }
+
+.dark #buyer-wallet-balance,
+.dark #buyer-wallet-escrow, .dark #buyer-wallet-spent, .dark #buyer-wallet-refunded { color: #ffffff !important; }
+
+/* ---- Trophées ---- */
+.dark .trophy-card { background: #1f2937; border-color: #374151; }
+.dark .trophy-card h3 { color: #f9fafb; }
+.dark .trophy-card p { color: #9ca3af; }
+.dark .trophy-card.unlocked { border-color: #92720f; box-shadow: 0 5px 18px rgba(245,158,11,.18); }
+.dark .trophy-hero-card { background: #302713; border-color: #6b541b; }
+.dark .trophy-hero-card h2 { color: #f9fafb; }
+.dark .trophy-progress { background: #374151; }
+.dark .trophy-badge.lock { background: #374151; color: #9ca3af; }
+.dark .trophy-badge.done { background: #14532d; color: #86efac; }
+
+/* ---- Badges de certification ---- */
+.dark .shop-badge-blue { background: linear-gradient(135deg, #60A5FA 0%, #1D4ED8 100%); }
+.dark .shop-badge-gold { background: radial-gradient(circle at 30% 30%, #FDE68A 0%, #F59E0B 45%, #B45309 100%); }
