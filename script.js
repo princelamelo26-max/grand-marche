@@ -4645,8 +4645,8 @@ var BUYER_TROPHIES = [
     {id:'favorite',name:'Coup de cœur',desc:'Ajouter 10 produits aux favoris',target:10,stat:'favorites',tier:'silver',icon:'heart'},
     {id:'regular',name:'Habitué',desc:'Terminer 5 commandes validées',target:5,stat:'orders',tier:'silver',icon:'cart'},
     {id:'loyal',name:'Client fidèle',desc:'Terminer 10 commandes validées',target:10,stat:'orders',tier:'gold',icon:'star'},
-    {id:'big_client',name:'Grand client',desc:'Terminer 25 commandes validées',target:25,stat:'orders',tier:'gold',icon:'gem'},
-    {id:'super_client',name:'Super client',desc:'Terminer 50 commandes validées',target:50,stat:'orders',tier:'platinum',icon:'crown'},
+    {id:'big_client',name:'Grand client',desc:'Terminer 25 commandes validées',target:25,stat:'orders',tier:'platinum',icon:'gem'},
+    {id:'super_client',name:'Super client',desc:'Terminer 50 commandes validées',target:50,stat:'orders',tier:'diamond',icon:'crown'},
     {id:'reviewer',name:'Donneur d’avis',desc:'Publier 5 avis après achat',target:5,stat:'reviews',tier:'silver',icon:'message'},
     {id:'critic',name:'Critique confirmé',desc:'Publier 15 avis après achat',target:15,stat:'reviews',tier:'gold',icon:'medal'},
     {id:'sponsor',name:'Parrain',desc:'Faire inscrire 10 utilisateurs grâce à votre invitation',target:10,stat:'referrals',tier:'gold',icon:'users'},
@@ -4702,246 +4702,172 @@ function _starPath(cx, cy, outer, inner, points, rotation) {
 
 function trophySvg(trophyId, tier, locked) {
     var P = {
-        bronze:   { light:'#f7d0a4', main:'#c97a3a', dark:'#7a4118', stroke:'#5c3210' },
-        silver:   { light:'#f5f7fa', main:'#b8c1cd', dark:'#6d7885', stroke:'#4e5865' },
-        gold:     { light:'#fff2b0', main:'#edb83b', dark:'#996d0e', stroke:'#6e4f08' },
-        platinum: { light:'#f0f6ff', main:'#a9bfdd', dark:'#5f7898', stroke:'#3f5570' },
-        diamond:  { light:'#d0f8ff', main:'#54c8dd', dark:'#0f7a92', stroke:'#0a5e70' }
+        bronze:   { light:'#f3c38a', main:'#c97a3a', dark:'#7a4118' },
+        silver:   { light:'#f3f5f8', main:'#aab4c0', dark:'#5e6772' },
+        gold:     { light:'#fde896', main:'#e0a829', dark:'#8a5f0a' },
+        platinum: { light:'#eaf2ff', main:'#9db3d6', dark:'#45597a' },
+        diamond:  { light:'#c9f6ff', main:'#3fbcdb', dark:'#0d6e88' }
     };
     var c = P[tier] || P.gold;
-    if (locked) c = { light:'#eef1f4', main:'#cbd0d6', dark:'#8c939c', stroke:'#6a7079' };
+    if (locked) c = { light:'#eef1f4', main:'#c3c9d0', dark:'#777f88' };
+    var LAUREL = locked ? '#9aa0a8' : '#8a7a3d';
+    var LAUREL_D = locked ? '#7a8088' : '#5f5226';
 
     var uid = _trophyUid();
-    var A = 'url(#' + uid + 'A)';
-    var C = 'url(#' + uid + 'C)';
-    var S = c.stroke;
-    var sw = 1.6;
+    var CUP = 'url(#' + uid + 'cup)';
+    var SHEEN = 'url(#' + uid + 'sheen)';
+    var stroke = c.dark;
 
-    /* 🎨 Palette pour les icônes intérieures
-       → Vives quand débloqué, grises quand verrouillé */
     var IC = locked ? {
-        gold:'#9aa0a8', goldD:'#6a7078', goldL:'#cfd4da',
-        red:'#9aa0a8',  redD:'#6a7078',  redL:'#cfd4da',
-        green:'#9aa0a8',greenD:'#6a7078',greenL:'#cfd4da',
-        blue:'#9aa0a8', blueD:'#6a7078', blueL:'#cfd4da',
-        cyan:'#9aa0a8', cyanD:'#6a7078',
-        orange:'#9aa0a8', orangeD:'#6a7078',
-        skin:'#c4c9d0', skinD:'#8a9098',
-        white:'#f7f8fa', cream:'#eef0f3'
+        main:'#9aa0a8', dark:'#6a7078', light:'#cfd4da', white:'#f3f4f6'
     } : {
-        gold:'#fbbf24', goldD:'#92400e', goldL:'#fde68a',
-        red:'#ef4444',  redD:'#991b1b',  redL:'#fecaca',
-        green:'#22c55e',greenD:'#15803d',greenL:'#bbf7d0',
-        blue:'#3b82f6', blueD:'#1e40af', blueL:'#bfdbfe',
-        cyan:'#22d3ee', cyanD:'#0e7490',
-        orange:'#f97316', orangeD:'#9a3412',
-        skin:'#fbbf24', skinD:'#b45309',
-        white:'#ffffff', cream:'#fef9e7'
+        main:'#ffffff', dark:'#00000055', light:'#ffffff', white:'#ffffff'
     };
 
     var defs =
         '<defs>' +
-        '<linearGradient id="' + uid + 'A" x1="0.15" y1="0" x2="0.75" y2="1">' +
+        '<linearGradient id="' + uid + 'cup" x1="0.1" y1="0" x2="0.9" y2="1">' +
             '<stop offset="0" stop-color="' + c.light + '"/>' +
-            '<stop offset="0.45" stop-color="' + c.main + '"/>' +
+            '<stop offset="0.5" stop-color="' + c.main + '"/>' +
             '<stop offset="1" stop-color="' + c.dark + '"/>' +
         '</linearGradient>' +
-        '<radialGradient id="' + uid + 'C" cx="0.32" cy="0.28" r="0.75">' +
-            '<stop offset="0" stop-color="#ffffff" stop-opacity="0.55"/>' +
-            '<stop offset="1" stop-color="#ffffff" stop-opacity="0"/>' +
-        '</radialGradient>' +
+        '<linearGradient id="' + uid + 'sheen" x1="0" y1="0" x2="1" y2="1">' +
+            '<stop offset="0" stop-color="#ffffff" stop-opacity="0.65"/>' +
+            '<stop offset="0.5" stop-color="#ffffff" stop-opacity="0"/>' +
+        '</linearGradient>' +
         '</defs>';
 
-    var body = '';
-
-    /* ⭐ 1. Premier pas — Médaille ronde, étoile dorée */
-    if (trophyId === 'first_step') {
-        var star = _starPath(32, 27, 10.5, 4.4, 5, -Math.PI/2);
-        body =
-            '<path d="M23 45 L18 72 L32 65 L46 72 L41 45 Z" fill="' + A + '" stroke="' + S + '" stroke-width="' + sw + '" stroke-linejoin="round"/>' +
-            '<path d="M32 47 L32 63" stroke="' + S + '" stroke-width="0.9" opacity="0.5"/>' +
-            '<circle cx="32" cy="27" r="21" fill="' + A + '" stroke="' + S + '" stroke-width="' + sw + '"/>' +
-            '<circle cx="32" cy="27" r="21" fill="' + C + '"/>' +
-            '<circle cx="32" cy="27" r="17.5" fill="' + IC.cream + '" stroke="' + S + '" stroke-width="0.9"/>' +
-            '<path d="' + star + '" fill="' + IC.gold + '" stroke="' + IC.goldD + '" stroke-width="1.2" stroke-linejoin="round"/>' +
-            '<path d="' + star + '" fill="none" stroke="' + IC.goldL + '" stroke-width="0.6" opacity="0.7"/>';
-
-    /* 🛍️ 2. Premier achat — Sac de courses, roues rouges */
-    } else if (trophyId === 'first_purchase') {
-        body =
-            '<path d="M12 26 L52 26 L56 70 L8 70 Z" fill="' + A + '" stroke="' + S + '" stroke-width="' + sw + '" stroke-linejoin="round"/>' +
-            '<path d="M12 26 L52 26 L53.2 36 L10.8 36 Z" fill="#ffffff" opacity="0.25"/>' +
-            '<path d="M22 26 C22 13, 42 13, 42 26" fill="none" stroke="' + S + '" stroke-width="2.4" stroke-linecap="round"/>' +
-            '<path d="M20 43 L25 43 L28 55 L42 55 L46 44 L26 44" fill="none" stroke="' + IC.goldD + '" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>' +
-            '<circle cx="30" cy="62" r="2.7" fill="' + IC.red + '" stroke="' + IC.redD + '" stroke-width="0.8"/>' +
-            '<circle cx="41" cy="62" r="2.7" fill="' + IC.red + '" stroke="' + IC.redD + '" stroke-width="0.8"/>' +
-            '<circle cx="30" cy="62" r="1" fill="' + IC.white + '" opacity="0.9"/>' +
-            '<circle cx="41" cy="62" r="1" fill="' + IC.white + '" opacity="0.9"/>';
-
-    /* 🧭 3. Explorateur — Boussole rouge/blanc/bleu */
-    } else if (trophyId === 'explorer') {
-        body =
-            '<circle cx="32" cy="38" r="26" fill="' + A + '" stroke="' + S + '" stroke-width="' + sw + '"/>' +
-            '<circle cx="32" cy="38" r="26" fill="' + C + '"/>' +
-            '<circle cx="32" cy="38" r="22" fill="' + IC.cream + '" stroke="' + S + '" stroke-width="1.1"/>' +
-            '<circle cx="32" cy="38" r="19" fill="none" stroke="' + S + '" stroke-width="0.5" opacity="0.35"/>' +
-            '<path d="M32 17 L32 20" stroke="' + S + '" stroke-width="1" opacity="0.6"/>' +
-            '<path d="M53 38 L50 38" stroke="' + S + '" stroke-width="1" opacity="0.6"/>' +
-            '<path d="M32 59 L32 56" stroke="' + S + '" stroke-width="1" opacity="0.6"/>' +
-            '<path d="M11 38 L14 38" stroke="' + S + '" stroke-width="1" opacity="0.6"/>' +
-            '<path d="M32 20 L36 38 L32 42 L28 38 Z" fill="' + IC.red + '" stroke="' + IC.redD + '" stroke-width="0.9" stroke-linejoin="round"/>' +
-            '<path d="M32 56 L28 38 L32 34 L36 38 Z" fill="' + IC.blue + '" stroke="' + IC.blueD + '" stroke-width="0.9" stroke-linejoin="round"/>' +
-            '<circle cx="32" cy="38" r="2.6" fill="' + IC.gold + '" stroke="' + IC.goldD + '" stroke-width="0.7"/>' +
-            '<text x="32" y="25" text-anchor="middle" font-family="Arial Black, Arial" font-size="5.5" font-weight="900" fill="' + IC.red + '">N</text>';
-
-    /* ❤️ 4. Coup de cœur — Cœur rouge vif */
-    } else if (trophyId === 'favorite') {
-        var heart = 'M32 68 C10 50, 8 33, 18 25 C25 20, 32 25, 32 31 C32 25, 39 20, 46 25 C56 33, 54 50, 32 68 Z';
-        body =
-            '<path d="M20 16 L32 28 L44 16 L40 6 L32 15 L24 6 Z" fill="' + A + '" stroke="' + S + '" stroke-width="' + sw + '" stroke-linejoin="round"/>' +
-            '<path d="' + heart + '" fill="' + IC.red + '" stroke="' + IC.redD + '" stroke-width="1.8" stroke-linejoin="round"/>' +
-            '<path d="M21 34 Q20 28 27 26" fill="none" stroke="' + IC.white + '" stroke-width="2.4" stroke-linecap="round" opacity="0.85"/>' +
-            '<circle cx="26" cy="32" r="1.8" fill="' + IC.white + '" opacity="0.95"/>';
-
-    /* ✓ 5. Habitué — Médaille avec coche verte + perles dorées */
-    } else if (trophyId === 'regular') {
-        body =
-            '<circle cx="32" cy="32" r="24" fill="' + A + '" stroke="' + S + '" stroke-width="' + sw + '"/>' +
-            '<circle cx="32" cy="32" r="24" fill="' + C + '"/>' +
-            '<circle cx="32" cy="32" r="20" fill="' + IC.cream + '" stroke="' + S + '" stroke-width="1"/>' +
-            '<circle cx="32" cy="11.5" r="2.8" fill="' + IC.gold + '" stroke="' + IC.goldD + '" stroke-width="0.8"/>' +
-            '<circle cx="52.5" cy="32" r="2.8" fill="' + IC.gold + '" stroke="' + IC.goldD + '" stroke-width="0.8"/>' +
-            '<circle cx="32" cy="52.5" r="2.8" fill="' + IC.gold + '" stroke="' + IC.goldD + '" stroke-width="0.8"/>' +
-            '<circle cx="11.5" cy="32" r="2.8" fill="' + IC.gold + '" stroke="' + IC.goldD + '" stroke-width="0.8"/>' +
-            '<path d="M22 32 L29 40 L43 24" fill="none" stroke="' + IC.greenD + '" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>' +
-            '<path d="M22 32 L29 40 L43 24" fill="none" stroke="' + IC.green + '" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>' +
-            '<path d="M22 32 L29 40 L43 24" fill="none" stroke="' + IC.greenL + '" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.7"/>';
-
-    /* 🛡️ 6. Client fidèle — Bouclier avec étoile dorée */
-    } else if (trophyId === 'loyal') {
-        var lstar = _starPath(32, 37, 15, 6.8, 5, -Math.PI/2);
-        body =
-            '<path d="M32 5 L54 13 L54 38 C54 52 44 64 32 72 C20 64 10 52 10 38 L10 13 Z" fill="' + A + '" stroke="' + S + '" stroke-width="' + sw + '" stroke-linejoin="round"/>' +
-            '<path d="M32 5 L54 13 L54 38 C54 52 44 64 32 72 C20 64 10 52 10 38 L10 13 Z" fill="' + C + '"/>' +
-            '<path d="M32 11 L49 17.5 L49 38 C49 49 42 59 32 64.5 C22 59 15 49 15 38 L15 17.5 Z" fill="' + IC.cream + '" stroke="' + S + '" stroke-width="0.8" opacity="0.95"/>' +
-            '<path d="' + lstar + '" fill="' + IC.gold + '" stroke="' + IC.goldD + '" stroke-width="1.3" stroke-linejoin="round"/>' +
-            '<path d="' + lstar + '" fill="none" stroke="' + IC.goldL + '" stroke-width="0.6" opacity="0.7"/>';
-
-    /* 💎 7. Grand client — Diamant facetté + étincelle cyan */
-    } else if (trophyId === 'big_client') {
-        body =
-            '<path d="M16 26 L32 6 L48 26 L32 70 Z" fill="' + A + '" stroke="' + S + '" stroke-width="' + sw + '" stroke-linejoin="round"/>' +
-            '<path d="M16 26 L48 26 L32 70 Z" fill="#ffffff" opacity="0.22"/>' +
-            '<path d="M16 26 L48 26" stroke="' + S + '" stroke-width="1.2" fill="none"/>' +
-            '<path d="M32 6 L22 26 L32 70" fill="none" stroke="' + S + '" stroke-width="0.9" opacity="0.5"/>' +
-            '<path d="M32 6 L42 26 L32 70" fill="none" stroke="' + S + '" stroke-width="0.9" opacity="0.5"/>' +
-            '<path d="M32 20 L34.5 30 L44 32 L34.5 34 L32 44 L29.5 34 L20 32 L29.5 30 Z" fill="' + IC.cyan + '" stroke="' + IC.cyanD + '" stroke-width="0.9" stroke-linejoin="round"/>' +
-            '<circle cx="32" cy="32" r="2.5" fill="' + IC.white + '" opacity="0.95"/>';
-
-    /* 👑 8. Super client — Couronne 5 pointes + joyaux colorés */
-    } else if (trophyId === 'super_client') {
-        body =
-            '<path d="M9 58 L14 20 L23 36 L32 12 L41 36 L50 20 L55 58 Z" fill="' + A + '" stroke="' + S + '" stroke-width="' + sw + '" stroke-linejoin="round"/>' +
-            '<path d="M9 58 L55 58" stroke="' + S + '" stroke-width="1.6" fill="none"/>' +
-            '<rect x="9" y="58" width="46" height="9" rx="1.5" fill="' + A + '" stroke="' + S + '" stroke-width="' + sw + '"/>' +
-            '<circle cx="14" cy="20" r="3.4" fill="' + IC.red + '" stroke="' + IC.redD + '" stroke-width="0.9"/>' +
-            '<circle cx="32" cy="12" r="3.8" fill="' + IC.cyan + '" stroke="' + IC.cyanD + '" stroke-width="0.9"/>' +
-            '<circle cx="50" cy="20" r="3.4" fill="' + IC.green + '" stroke="' + IC.greenD + '" stroke-width="0.9"/>' +
-            '<circle cx="13" cy="19" r="1" fill="' + IC.white + '" opacity="0.9"/>' +
-            '<circle cx="31" cy="11" r="1.2" fill="' + IC.white + '" opacity="0.9"/>' +
-            '<circle cx="49" cy="19" r="1" fill="' + IC.white + '" opacity="0.9"/>' +
-            '<circle cx="20" cy="62.5" r="2" fill="' + IC.red + '" stroke="' + IC.redD + '" stroke-width="0.5"/>' +
-            '<circle cx="32" cy="62.5" r="2" fill="' + IC.gold + '" stroke="' + IC.goldD + '" stroke-width="0.5"/>' +
-            '<circle cx="44" cy="62.5" r="2" fill="' + IC.cyan + '" stroke="' + IC.cyanD + '" stroke-width="0.5"/>';
-
-    /* 💬 9. Donneur d'avis — Bulle + 3 étoiles dorées */
-    } else if (trophyId === 'reviewer') {
-        var st1 = _starPath(20, 32, 5.5, 2.4);
-        var st2 = _starPath(32, 32, 5.5, 2.4);
-        var st3 = _starPath(44, 32, 5.5, 2.4);
-        body =
-            '<path d="M8 12 L56 12 L56 50 L35 50 L32 68 L22 50 L8 50 Z" fill="' + A + '" stroke="' + S + '" stroke-width="' + sw + '" stroke-linejoin="round"/>' +
-            '<path d="M8 12 L56 12 L56 50 L35 50 L32 68 L22 50 L8 50 Z" fill="' + C + '"/>' +
-            '<path d="M11 15 L53 15 L53 47 L33.5 47 L32 58 L24 47 L11 47 Z" fill="' + IC.cream + '" stroke="' + S + '" stroke-width="0.5" opacity="0.9"/>' +
-            '<path d="' + st1 + '" fill="' + IC.gold + '" stroke="' + IC.goldD + '" stroke-width="0.7" stroke-linejoin="round"/>' +
-            '<path d="' + st2 + '" fill="' + IC.gold + '" stroke="' + IC.goldD + '" stroke-width="0.7" stroke-linejoin="round"/>' +
-            '<path d="' + st3 + '" fill="' + IC.gold + '" stroke="' + IC.goldD + '" stroke-width="0.7" stroke-linejoin="round"/>' +
-            '<circle cx="20" cy="32" r="1.2" fill="' + IC.white + '" opacity="0.85"/>' +
-            '<circle cx="32" cy="32" r="1.2" fill="' + IC.white + '" opacity="0.85"/>' +
-            '<circle cx="44" cy="32" r="1.2" fill="' + IC.white + '" opacity="0.85"/>';
-
-    /* 🏅 10. Critique confirmé — Médaille "A+" or avec rubans rouges */
-    } else if (trophyId === 'critic') {
-        body =
-            '<path d="M17 6 L26 40 L32 32 L38 40 L47 6 Z" fill="' + IC.red + '" stroke="' + IC.redD + '" stroke-width="' + sw + '" stroke-linejoin="round"/>' +
-            '<path d="M22 6 L28 30" stroke="' + IC.redD + '" stroke-width="0.8" opacity="0.5" fill="none"/>' +
-            '<path d="M42 6 L36 30" stroke="' + IC.redD + '" stroke-width="0.8" opacity="0.5" fill="none"/>' +
-            '<circle cx="32" cy="47" r="23" fill="' + A + '" stroke="' + S + '" stroke-width="' + sw + '"/>' +
-            '<circle cx="32" cy="47" r="23" fill="' + C + '"/>' +
-            '<circle cx="32" cy="47" r="19" fill="' + IC.cream + '" stroke="' + S + '" stroke-width="1"/>' +
-            '<text x="32" y="48" text-anchor="middle" font-family="Arial Black, Arial" font-size="15" font-weight="900" fill="' + IC.gold + '" stroke="' + IC.goldD + '" stroke-width="0.6">A+</text>' +
-            '<text x="32" y="60" text-anchor="middle" font-family="Arial" font-size="6.5" font-weight="bold" letter-spacing="0.4" fill="' + S + '">CRITIC</text>';
-
-    /* 🤝 11. Parrain — Bouclier + 2 personnes colorées */
-    } else if (trophyId === 'sponsor') {
-        body =
-            '<path d="M32 5 L54 12 L54 40 C54 54 44 66 32 72 C20 66 10 54 10 40 L10 12 Z" fill="' + A + '" stroke="' + S + '" stroke-width="' + sw + '" stroke-linejoin="round"/>' +
-            '<path d="M32 5 L54 12 L54 40 C54 54 44 66 32 72 C20 66 10 54 10 40 L10 12 Z" fill="' + C + '"/>' +
-            '<path d="M32 10 L50 15.5 L50 40 C50 51 42.5 61.5 32 67 C21.5 61.5 14 51 14 40 L14 15.5 Z" fill="' + IC.cream + '" stroke="' + S + '" stroke-width="0.8" opacity="0.9"/>' +
-            '<circle cx="24" cy="28" r="4.8" fill="' + IC.skin + '" stroke="' + IC.skinD + '" stroke-width="0.9"/>' +
-            '<path d="M14 50 C14 41 19 36 24 36 C29 36 34 41 34 50 Z" fill="' + IC.blue + '" stroke="' + IC.blueD + '" stroke-width="0.9"/>' +
-            '<circle cx="40" cy="28" r="4.8" fill="' + IC.skin + '" stroke="' + IC.skinD + '" stroke-width="0.9"/>' +
-            '<path d="M30 50 C30 41 35 36 40 36 C45 36 50 41 50 50 Z" fill="' + IC.green + '" stroke="' + IC.greenD + '" stroke-width="0.9"/>';
-
-    /* 👥 12. Super parrain — Hexagone + 3 personnes multicolores */
-    } else if (trophyId === 'super_sponsor') {
-        body =
-            '<path d="M32 4 L56 18 L56 46 L32 62 L8 46 L8 18 Z" fill="' + A + '" stroke="' + S + '" stroke-width="' + sw + '" stroke-linejoin="round"/>' +
-            '<path d="M32 4 L56 18 L56 46 L32 62 L8 46 L8 18 Z" fill="' + C + '"/>' +
-            '<path d="M32 8 L52 20 L52 44 L32 57 L12 44 L12 20 Z" fill="' + IC.cream + '" opacity="0.55"/>' +
-            '<circle cx="20" cy="24" r="4.3" fill="' + IC.skin + '" stroke="' + IC.skinD + '" stroke-width="0.8"/>' +
-            '<circle cx="32" cy="20" r="4.3" fill="' + IC.skin + '" stroke="' + IC.skinD + '" stroke-width="0.8"/>' +
-            '<circle cx="44" cy="24" r="4.3" fill="' + IC.skin + '" stroke="' + IC.skinD + '" stroke-width="0.8"/>' +
-            '<path d="M12 44 C12 36 16 32 20 32 C24 32 28 36 28 44 Z" fill="' + IC.red + '" stroke="' + IC.redD + '" stroke-width="0.8"/>' +
-            '<path d="M24 44 C24 34 28 30 32 30 C36 30 40 34 40 44 Z" fill="' + IC.blue + '" stroke="' + IC.blueD + '" stroke-width="0.8"/>' +
-            '<path d="M36 44 C36 36 40 32 44 32 C48 32 52 36 52 44 Z" fill="' + IC.green + '" stroke="' + IC.greenD + '" stroke-width="0.8"/>';
-
-    /* 👑 13. Ambassadeur — Couronne ornée + joyaux précieux */
-    } else if (trophyId === 'ambassador') {
-        var topStar = _starPath(32, 10, 5, 2.2, 5, -Math.PI/2);
-        body =
-            '<path d="M7 58 L11 18 L22 34 L32 8 L42 34 L53 18 L57 58 Z" fill="' + A + '" stroke="' + S + '" stroke-width="' + sw + '" stroke-linejoin="round"/>' +
-            '<rect x="7" y="58" width="50" height="10" rx="1.5" fill="' + A + '" stroke="' + S + '" stroke-width="' + sw + '"/>' +
-            '<path d="' + topStar + '" fill="' + IC.gold + '" stroke="' + IC.goldD + '" stroke-width="0.9" stroke-linejoin="round"/>' +
-            '<circle cx="11" cy="18" r="3.3" fill="' + IC.red + '" stroke="' + IC.redD + '" stroke-width="0.9"/>' +
-            '<circle cx="53" cy="18" r="3.3" fill="' + IC.cyan + '" stroke="' + IC.cyanD + '" stroke-width="0.9"/>' +
-            '<circle cx="10" cy="17" r="1" fill="' + IC.white + '" opacity="0.9"/>' +
-            '<circle cx="52" cy="17" r="1" fill="' + IC.white + '" opacity="0.9"/>' +
-            '<circle cx="18" cy="63" r="2.3" fill="' + IC.red + '" stroke="' + IC.redD + '" stroke-width="0.5"/>' +
-            '<circle cx="32" cy="63" r="2.6" fill="' + IC.cyan + '" stroke="' + IC.cyanD + '" stroke-width="0.5"/>' +
-            '<circle cx="46" cy="63" r="2.3" fill="' + IC.green + '" stroke="' + IC.greenD + '" stroke-width="0.5"/>' +
-            '<path d="M10 36 Q15 42 10 48" fill="none" stroke="' + S + '" stroke-width="0.9" opacity="0.5"/>' +
-            '<path d="M54 36 Q49 42 54 48" fill="none" stroke="' + S + '" stroke-width="0.9" opacity="0.5"/>';
-
-    /* ⚡ 14. Membre actif — Éclair jaune éclatant */
-    } else if (trophyId === 'active') {
-        body =
-            '<path d="M32 4 C50 4 60 18 60 34 C60 50 46 63 32 72 C18 63 4 50 4 34 C4 18 14 4 32 4 Z" fill="' + A + '" stroke="' + S + '" stroke-width="' + sw + '" stroke-linejoin="round"/>' +
-            '<path d="M32 4 C50 4 60 18 60 34 C60 50 46 63 32 72 C18 63 4 50 4 34 C4 18 14 4 32 4 Z" fill="' + C + '"/>' +
-            '<path d="M37 11 L18 40 L30 40 L26 64 L47 32 L34 32 Z" fill="' + IC.gold + '" stroke="' + IC.goldD + '" stroke-width="1.5" stroke-linejoin="round"/>' +
-            '<path d="M35 15 L22 36 L30 36 L27 56 L42 34 L33 34 Z" fill="' + IC.goldL + '" opacity="0.55"/>';
-
-    /* Fallback générique */
-    } else {
-        var fb = _starPath(32, 38, 20, 8, 5);
-        body =
-            '<circle cx="32" cy="38" r="24" fill="' + A + '" stroke="' + S + '" stroke-width="' + sw + '"/>' +
-            '<circle cx="32" cy="38" r="19" fill="' + IC.cream + '"/>' +
-            '<path d="' + fb + '" fill="' + IC.gold + '" stroke="' + IC.goldD + '" stroke-width="1.2"/>';
+    function leaf(x, y, ang, len, w) {
+        var r = ang * Math.PI / 180;
+        var dx = Math.cos(r), dy = Math.sin(r);
+        var px = -dy, py = dx;
+        var tx = x + dx * len, ty = y + dy * len;
+        var mx = x + dx * len * 0.5, my = y + dy * len * 0.5;
+        var c1x = mx + px * w, c1y = my + py * w;
+        var c2x = mx - px * w, c2y = my - py * w;
+        return '<path d="M' + x.toFixed(1) + ',' + y.toFixed(1) +
+            ' Q' + c1x.toFixed(1) + ',' + c1y.toFixed(1) + ' ' + tx.toFixed(1) + ',' + ty.toFixed(1) +
+            ' Q' + c2x.toFixed(1) + ',' + c2y.toFixed(1) + ' ' + x.toFixed(1) + ',' + y.toFixed(1) + 'Z" ' +
+            'fill="' + LAUREL + '" stroke="' + LAUREL_D + '" stroke-width="0.5"/>' +
+            '<path d="M' + x.toFixed(1) + ',' + y.toFixed(1) + ' L' + tx.toFixed(1) + ',' + ty.toFixed(1) + '" stroke="' + LAUREL_D + '" stroke-width="0.4" opacity="0.5"/>';
+    }
+    function leafCluster(side) {
+        var mx = side === 'l' ? -1 : 1;
+        var g = '<g>';
+        var anchor = { x: 32, y: 15 };
+        var stemPts = [[32,15],[27,18],[23,23],[20,29],[18,36],[17,44],[18,52]];
+        var pathD = 'M' + stemPts.map(function(p){return (mx*(p[0]-32)+32).toFixed(1)+','+p[1];}).join(' L');
+        g += '<path d="' + pathD + '" fill="none" stroke="' + LAUREL_D + '" stroke-width="0.8" opacity="0.65"/>';
+        var leaves = [
+            [30,16,200,10,3.6],[26,19,205,11,3.8],[22.5,24,210,11.5,4],
+            [20,30,215,11.5,4],[18,37,220,11,4],[17,44,225,10.5,3.8],[18,51,230,9.5,3.4]
+        ];
+        leaves.forEach(function (lf) {
+            var x = mx * (lf[0]-32) + 32, ang = mx === -1 ? (180 - lf[2]) : lf[2];
+            g += leaf(x, lf[1], ang, lf[3], lf[4]);
+        });
+        g += '</g>';
+        return g;
     }
 
-    return '<svg viewBox="0 0 64 76" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">' +
-        defs + body + '</svg>';
+    var base =
+        '<ellipse cx="32" cy="84" rx="13" ry="3" fill="' + stroke + '" opacity="0.25"/>' +
+        '<rect x="19" y="78" width="26" height="7" rx="2" fill="' + CUP + '" stroke="' + stroke + '" stroke-width="1.4"/>' +
+        '<path d="M28,78 L36,78 L33.5,65 L30.5,65 Z" fill="' + CUP + '" stroke="' + stroke + '" stroke-width="1.2"/>' +
+        '<circle cx="32" cy="71" r="5.6" fill="#1a8f4c" stroke="#0d5c30" stroke-width="1"/>' +
+        '<text x="32" y="73.3" text-anchor="middle" font-family="Arial Black, Arial" font-size="5.6" font-weight="900" fill="#ffffff">GM</text>' +
+        '<path d="M32,8 L49,19 L49,43 L32,60 L15,43 L15,19 Z" fill="' + CUP + '" stroke="' + stroke + '" stroke-width="1.5" stroke-linejoin="round"/>' +
+        '<path d="M32,8 L49,19 L32,34 L15,19 Z" fill="' + SHEEN + '"/>' +
+        '<path d="M15,19 L15,43 L32,60 L32,34 Z" fill="#000000" opacity="0.10"/>' +
+        '<circle cx="32" cy="35" r="15.5" fill="' + CUP + '" stroke="' + stroke + '" stroke-width="1.2"/>' +
+        '<circle cx="32" cy="35" r="12.3" fill="#fffdf5" stroke="' + stroke + '" stroke-width="1"/>' +
+        leafCluster('l') + leafCluster('r');
+
+    var glyph = trophyGlyph(trophyId, IC, locked);
+    var svg = '<svg viewBox="0 0 64 90" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">' + defs + base +
+        '<g transform="translate(32,35) scale(0.52)">' + glyph + '</g>' + '</svg>';
+    return svg;
+}
+
+function trophyGlyph(id, IC, locked) {
+    var RED = locked ? IC.main : '#ef4444', RD = locked ? IC.dark : '#991b1b';
+    var BLUE = locked ? IC.main : '#3b82f6', BD = locked ? IC.dark : '#1e40af';
+    var GREEN = locked ? IC.main : '#22c55e', GD = locked ? IC.dark : '#15803d';
+    var GOLD = locked ? IC.main : '#f5b301', GOD = locked ? IC.dark : '#92400e';
+    var CYAN = locked ? IC.main : '#22d3ee', CYD = locked ? IC.dark : '#0e7490';
+    var SKIN = locked ? IC.light : '#fbbf24', SKD = locked ? IC.dark : '#b45309';
+    var W = '#ffffff';
+    switch (id) {
+        case 'first_step': {
+            var s = _starPath(0, -2, 17, 7, 5, -Math.PI/2);
+            return '<path d="' + s + '" fill="' + GOLD + '" stroke="' + GOD + '" stroke-width="2" stroke-linejoin="round"/>';
+        }
+        case 'first_purchase':
+            return '<path d="M-20,-8 L20,-8 L16,26 L-16,26 Z" fill="' + GOLD + '" stroke="' + GOD + '" stroke-width="2" stroke-linejoin="round"/>' +
+                '<path d="M-10,-8 C-10,-20 10,-20 10,-8" fill="none" stroke="' + GOD + '" stroke-width="3" stroke-linecap="round"/>' +
+                '<circle cx="-6" cy="18" r="3.4" fill="' + RED + '" stroke="' + RD + '" stroke-width="1"/>' +
+                '<circle cx="8" cy="18" r="3.4" fill="' + RED + '" stroke="' + RD + '" stroke-width="1"/>';
+        case 'explorer':
+            return '<circle cx="0" cy="0" r="22" fill="none" stroke="' + GOD + '" stroke-width="2"/>' +
+                '<path d="M0,-18 L6,0 L0,4 L-6,0 Z" fill="' + RED + '" stroke="' + RD + '" stroke-width="1"/>' +
+                '<path d="M0,18 L-6,0 L0,-4 L6,0 Z" fill="' + BLUE + '" stroke="' + BD + '" stroke-width="1"/>' +
+                '<circle cx="0" cy="0" r="3.4" fill="' + GOLD + '" stroke="' + GOD + '" stroke-width="1"/>';
+        case 'favorite': {
+            var h = 'M0,24 C-26,4 -28,-16 -14,-22 C-5,-26 0,-18 0,-12 C0,-18 5,-26 14,-22 C28,-16 26,4 0,24 Z';
+            return '<path d="' + h + '" fill="' + RED + '" stroke="' + RD + '" stroke-width="2" stroke-linejoin="round"/>' +
+                '<path d="M-12,-8 Q-14,-16 -4,-18" fill="none" stroke="' + W + '" stroke-width="3" stroke-linecap="round" opacity="0.85"/>';
+        }
+        case 'regular':
+            return '<path d="M-14,0 L-3,13 L15,-11" fill="none" stroke="' + GD + '" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>' +
+                '<path d="M-14,0 L-3,13 L15,-11" fill="none" stroke="' + GREEN + '" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>';
+        case 'loyal': {
+            var s2 = _starPath(0, 0, 18, 7.5, 5, -Math.PI/2);
+            return '<path d="' + s2 + '" fill="' + GOLD + '" stroke="' + GOD + '" stroke-width="2" stroke-linejoin="round"/>';
+        }
+        case 'big_client':
+            return '<path d="M-16,-10 L16,-10 L0,26 Z" fill="' + CYAN + '" stroke="' + CYD + '" stroke-width="2" stroke-linejoin="round"/>' +
+                '<path d="M-16,-10 L0,-22 L16,-10 Z" fill="' + CYAN + '" stroke="' + CYD + '" stroke-width="2" stroke-linejoin="round"/>' +
+                '<path d="M-16,-10 L16,-10" stroke="' + CYD + '" stroke-width="1" opacity="0.6"/>' +
+                '<path d="M0,-22 L0,26" stroke="' + CYD + '" stroke-width="0.8" opacity="0.5"/>' +
+                '<path d="M-16,-10 L0,-22 L16,-10 Z" fill="#ffffff" opacity="0.3"/>';
+        case 'super_client':
+            return '<path d="M-20,10 L-16,-16 L-8,0 L0,-20 L8,0 L16,-16 L20,10 Z" fill="' + CYAN + '" stroke="' + CYD + '" stroke-width="2" stroke-linejoin="round"/>' +
+                '<rect x="-20" y="10" width="40" height="7" rx="1.5" fill="' + CYAN + '" stroke="' + CYD + '" stroke-width="2"/>' +
+                '<circle cx="-16" cy="-16" r="2.8" fill="' + RED + '"/><circle cx="0" cy="-20" r="3.2" fill="' + W + '"/><circle cx="16" cy="-16" r="2.8" fill="' + GREEN + '"/>';
+        case 'reviewer': {
+            var st1 = _starPath(-11, 0, 5.2, 2.2), st2 = _starPath(0, 0, 5.2, 2.2), st3 = _starPath(11, 0, 5.2, 2.2);
+            return '<path d="' + st1 + '" fill="' + GOLD + '" stroke="' + GOD + '" stroke-width="0.8"/>' +
+                '<path d="' + st2 + '" fill="' + GOLD + '" stroke="' + GOD + '" stroke-width="0.8"/>' +
+                '<path d="' + st3 + '" fill="' + GOLD + '" stroke="' + GOD + '" stroke-width="0.8"/>';
+        }
+        case 'critic':
+            return '<text x="0" y="8" text-anchor="middle" font-family="Arial Black, Arial" font-size="24" font-weight="900" fill="' + GOLD + '" stroke="' + GOD + '" stroke-width="0.8">A+</text>';
+        case 'sponsor':
+            return '<circle cx="-9" cy="-10" r="6.2" fill="' + SKIN + '" stroke="' + SKD + '" stroke-width="1"/>' +
+                '<path d="M-19,18 C-19,5 -14,-2 -9,-2 C-4,-2 1,5 1,18 Z" fill="' + BLUE + '" stroke="' + BD + '" stroke-width="1"/>' +
+                '<circle cx="9" cy="-10" r="6.2" fill="' + SKIN + '" stroke="' + SKD + '" stroke-width="1"/>' +
+                '<path d="M-1,18 C-1,5 4,-2 9,-2 C14,-2 19,5 19,18 Z" fill="' + GREEN + '" stroke="' + GD + '" stroke-width="1"/>';
+        case 'super_sponsor':
+            return '<circle cx="-15" cy="-8" r="5.4" fill="' + SKIN + '" stroke="' + SKD + '" stroke-width="0.9"/>' +
+                '<circle cx="0" cy="-12" r="5.4" fill="' + SKIN + '" stroke="' + SKD + '" stroke-width="0.9"/>' +
+                '<circle cx="15" cy="-8" r="5.4" fill="' + SKIN + '" stroke="' + SKD + '" stroke-width="0.9"/>' +
+                '<path d="M-24,18 C-24,7 -20,2 -15,2 C-10,2 -6,7 -6,18 Z" fill="' + RED + '" stroke="' + RD + '" stroke-width="0.9"/>' +
+                '<path d="M-9,18 C-9,6 -5,1 0,1 C5,1 9,6 9,18 Z" fill="' + BLUE + '" stroke="' + BD + '" stroke-width="0.9"/>' +
+                '<path d="M6,18 C6,7 10,2 15,2 C20,2 24,7 24,18 Z" fill="' + GREEN + '" stroke="' + GD + '" stroke-width="0.9"/>';
+        case 'ambassador': {
+            var ts = _starPath(0, -20, 5, 2.2, 5, -Math.PI/2);
+            return '<path d="M-20,16 L-17,-10 L-8,4 L0,-16 L8,4 L17,-10 L20,16 Z" fill="' + CYAN + '" stroke="' + CYD + '" stroke-width="2" stroke-linejoin="round"/>' +
+                '<rect x="-20" y="16" width="40" height="7" rx="1.5" fill="' + CYAN + '" stroke="' + CYD + '" stroke-width="2"/>' +
+                '<path d="' + ts + '" fill="' + GOLD + '" stroke="' + GOD + '" stroke-width="0.9"/>' +
+                '<circle cx="-17" cy="-10" r="3" fill="' + RED + '"/><circle cx="17" cy="-10" r="3" fill="' + CYAN + '"/>';
+        }
+        case 'active':
+            return '<path d="M5,-24 L-14,2 L-3,2 L-6,24 L15,-6 L3,-6 Z" fill="' + GOLD + '" stroke="' + GOD + '" stroke-width="2" stroke-linejoin="round"/>';
+        default: {
+            var fb = _starPath(0, 0, 18, 7);
+            return '<path d="' + fb + '" fill="' + GOLD + '" stroke="' + GOD + '" stroke-width="1.5"/>';
+        }
+    }
 }
 
 function updateBuyerTrophyActivity(){
