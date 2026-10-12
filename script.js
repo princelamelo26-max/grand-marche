@@ -191,6 +191,7 @@ var buyerOrders = [];
 var sellerOrders = [];
 var conversations = [];
 var userId = null;
+var userCity = '';
 
 /* =========================================================
    HELPERS
@@ -627,6 +628,11 @@ function renderProductsFeed() {
     allProducts.sort(function(a, b) {
         var ba = (a.product.boostedUntil || 0) > _now ? 1 : 0, bb = (b.product.boostedUntil || 0) > _now ? 1 : 0;
         if (ba !== bb) return bb - ba;
+        // À boost égal, les boutiques de la même ville que l'acheteur remontent en premier.
+        if (userCity) {
+            var ca = (a.shop.city === userCity) ? 1 : 0, cb = (b.shop.city === userCity) ? 1 : 0;
+            if (ca !== cb) return cb - ca;
+        }
         return (b.addedAt || 0) - (a.addedAt || 0);
     });
     if (counter) counter.textContent = allProducts.length + ' produit' + (allProducts.length > 1 ? 's' : '');
@@ -1337,37 +1343,11 @@ function selectProductDelivery(mode) {
     }
 }
 
-/* ===== LOCALISATION ===== */
+/* ===== VILLE =====
+   Plus de géolocalisation : la ville est celle choisie par l'utilisateur à l'inscription. */
 function detectLocation() {
     var el = document.getElementById('user-location'); if (!el) return;
-    el.textContent = 'Localisation...';
-    var done = false;
-    function setCity(city) { if (done) return; done = true; el.textContent = city || 'Congo'; }
-    setTimeout(function() { if (!done) fallbackIP(setCity); }, 8000);
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-            function(pos) {
-                fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat=' + pos.coords.latitude + '&lon=' + pos.coords.longitude + '&accept-language=fr&zoom=10')
-                    .then(function(r) { return r.json(); })
-                    .then(function(data) {
-                        var city = '';
-                        if (data.address) city = data.address.city || data.address.town || data.address.village || data.address.county || data.address.state;
-                        setCity(city);
-                    }).catch(function() { fallbackIP(setCity); });
-            },
-            function() { fallbackIP(setCity); }, { timeout: 6000, enableHighAccuracy: false }
-        );
-    } else fallbackIP(setCity);
-}
-function fallbackIP(setCity) {
-    fetch('https://ipapi.co/json/').then(function(r) { return r.json(); }).then(function(d) {
-        if (d.city) setCity(d.city); else if (d.region) setCity(d.region); else fallbackIP2(setCity);
-    }).catch(function() { fallbackIP2(setCity); });
-}
-function fallbackIP2(setCity) {
-    fetch('https://ip-api.com/json/').then(function(r) { return r.json(); }).then(function(d) {
-        setCity(d.city || d.regionName || 'Congo');
-    }).catch(function() { setCity('Congo'); });
+    el.textContent = userCity || 'Congo';
 }
 
 /* =========================================================
@@ -1385,6 +1365,11 @@ function openCropScreen(ratio, imgSrc) {
     cropReturnScreen = cur ? cur.id : null;
     cropImg = new Image(); cropZoom = 1; cropOffset = { x: 0, y: 0 }; cropRatio = ratio;
     setCropRatioFrame(ratio); setCropRatioButton(ratio);
+    var squareBtn = document.getElementById('crop-ratio-square'), circleBtn = document.getElementById('crop-ratio-circle'), rectBtn = document.getElementById('crop-ratio-rect');
+    var isProduct = (cropMode === 'product');
+    if (squareBtn) squareBtn.classList.toggle('hidden', !isProduct);
+    if (rectBtn) rectBtn.classList.toggle('hidden', !isProduct);
+    if (circleBtn) circleBtn.classList.toggle('hidden', isProduct);
     var slider = document.getElementById('crop-zoom'); if (slider) slider.value = 1;
     var imgEl = document.getElementById('crop-image');
     if (imgEl) {
@@ -2478,12 +2463,14 @@ function prepareSellerSignup() {
     var already = GM.loggedIn();
     var nameEl = document.getElementById('sel-name'), phoneEl = document.getElementById('sel-phone'),
         emailEl = document.getElementById('sel-email'), passWrap = document.getElementById('sel-pass-wrap'),
+        cityWrap = document.getElementById('sel-city-wrap'),
         title = document.getElementById('seller-header-title'), sub = document.getElementById('seller-header-subtitle');
     if (already) {
         if (nameEl) { nameEl.value = userName || ''; nameEl.readOnly = true; }
         if (phoneEl) { phoneEl.value = (userPhone || '').replace(/^0/, ''); phoneEl.readOnly = true; }
         if (emailEl) { emailEl.value = userEmail || ''; emailEl.readOnly = true; }
         if (passWrap) passWrap.classList.add('hidden');
+        if (cityWrap) cityWrap.classList.add('hidden');
         if (title) title.textContent = 'Créer ma boutique';
         if (sub) sub.textContent = 'Votre compte ' + (userPhone || '') + ' reste le même';
     } else {
@@ -2491,6 +2478,7 @@ function prepareSellerSignup() {
         if (phoneEl) { phoneEl.value = ''; phoneEl.readOnly = false; }
         if (emailEl) { emailEl.value = ''; emailEl.readOnly = false; }
         if (passWrap) passWrap.classList.remove('hidden');
+        if (cityWrap) cityWrap.classList.remove('hidden');
         if (title) title.textContent = 'Devenir vendeur';
         if (sub) sub.textContent = 'Créez votre boutique';
     }
@@ -2545,16 +2533,19 @@ function saveRegistrationAndGoHome() {
     var em = emailEl ? emailEl.value.trim() : '';
     var refEl = document.getElementById('reg-referral');
     var refCode = refEl ? refEl.value.trim().toUpperCase() : '';
+    var cityEl = document.getElementById('reg-city');
+    var city = cityEl ? cityEl.value : '';
     if (n.length < 3) { toast('Nom requis.', 'error'); return; }
     if (p.replace(/[^0-9]/g,'').length < 8) { toast('Numéro invalide.', 'error'); return; }
     if (!em) { toast('Adresse email requise.', 'error'); return; }
     if (!isValidEmail(em)) { toast('Adresse email invalide.', 'error'); return; }
     if (ps.length < 6) { toast('Mot de passe : 6 min.', 'error'); return; }
+    if (!city) { toast('Choisissez votre ville.', 'error'); return; }
     var c = p.replace(/\s/g,''); if (c.indexOf('0') !== 0 && c.length === 8) c = '0' + c;
     showLoading('Création du compte...');
-    GM.register({ name: n, phone: c, password: ps, email: em, referral: refCode }).then(function (sess) {
+    GM.register({ name: n, phone: c, password: ps, email: em, city: city, referral: refCode }).then(function (sess) {
         hideLoading();
-        userName = sess.user.name; userPass = ''; userEmail = em; userPhone = sess.user.phone; userId = sess.user.id; isSeller = false; hasBuyerAccount = true;
+        userName = sess.user.name; userPass = ''; userEmail = em; userPhone = sess.user.phone; userId = sess.user.id; userCity = sess.user.city || ''; detectLocation(); isSeller = false; hasBuyerAccount = true;
         buyerTrophyStats.account = 1; updateBuyerTrophyActivity();
         _stateDirty = true;
         if (sess.referralApplied) toast('Code parrain ' + refCode + ' appliqué. Bienvenue !', 'success', 4000);
@@ -2570,7 +2561,7 @@ function buyerLogin() {
     var c = p.replace(/\s/g,''); if (c.indexOf('0') !== 0 && c.length === 8) c = '0' + c;
     showLoading('Connexion...');
     GM.login(c, ps).then(function (sess) {
-        userName = sess.user.name; userPhone = sess.user.phone; userEmail = sess.user.email || ''; userPass = ''; userId = sess.user.id;
+        userName = sess.user.name; userPhone = sess.user.phone; userEmail = sess.user.email || ''; userPass = ''; userId = sess.user.id; userCity = sess.user.city || ''; detectLocation();
         isSeller = false; hasBuyerAccount = true; _stateDirty = true;
         return (sess.shop ? GM.adoptShop(sess) : GM.loadCatalog()).then(function () {
             hideLoading(); toast('Bienvenue ' + userName + '.', 'success'); showScreen('home-screen');
@@ -2611,15 +2602,18 @@ function createShop() {
     var ps = document.getElementById('sel-pass').value;
     var emailEl = document.getElementById('sel-email');
     var em = emailEl ? emailEl.value.trim() : '';
+    var cityEl = document.getElementById('sel-city');
+    var city = cityEl ? cityEl.value : '';
     if (n.length < 3) { toast('Nom requis.', 'error'); return; }
     if (p.replace(/[^0-9]/g,'').length < 8) { toast('Numéro invalide.', 'error'); return; }
     if (!em) { toast('Adresse email requise.', 'error'); return; }
     if (!isValidEmail(em)) { toast('Adresse email invalide.', 'error'); return; }
     if (ps.length < 6) { toast('Mot de passe 6 min.', 'error'); return; }
+    if (!city) { toast('Choisissez votre ville.', 'error'); return; }
     var cp = p.replace(/\s/g,''); if (cp.indexOf('0') !== 0 && cp.length === 8) cp = '0' + cp;
     showLoading('Création de votre boutique...');
-    GM.register({ name: n, phone: cp, password: ps, email: em }).then(function (sess) {
-        userId = sess.user.id;
+    GM.register({ name: n, phone: cp, password: ps, email: em, city: city }).then(function (sess) {
+        userId = sess.user.id; userCity = sess.user.city || ''; detectLocation();
         finishShopCreation(n, cp, em);
     }).catch(function (e) { hideLoading(); toast(e.message, 'error', 5000); });
 }
@@ -3616,7 +3610,7 @@ function sellerLogin() {
         if (!sess.shop) { hideLoading(); toast('Aucune boutique sur ce compte. Créez votre boutique.', 'warn', 5000); switchSellerMode('register'); return; }
         return GM.adoptShop(sess).then(function () {
             hideLoading();
-            userName = sess.user.name; userPhone = sess.user.phone; userEmail = sess.user.email || ''; userId = sess.user.id;
+            userName = sess.user.name; userPhone = sess.user.phone; userEmail = sess.user.email || ''; userId = sess.user.id; userCity = sess.user.city || ''; detectLocation();
             isSeller = true; hasBuyerAccount = true; applyShopToDashboard(); syncMyShopToCatalog(); _stateDirty = true;
             toast('Connexion réussie.', 'success'); showScreen('seller-dashboard-screen');
         });
@@ -4162,7 +4156,18 @@ function renderProductMedia() {
     var main = document.getElementById('product-main-media'), thumbs = document.getElementById('product-thumbnails');
     if (!main || !thumbs) return;
     var img = _productGallery.images[_productGallery.currentIndex];
-    if (img) main.innerHTML = '<img src="' + img + '" class="w-full h-full object-contain">';
+    if (img) {
+        main.innerHTML = '<img src="' + img + '" class="w-full h-full object-contain">';
+        main.style.aspectRatio = '1'; // valeur par défaut le temps de connaître les vraies dimensions
+        var probe = new Image();
+        probe.onload = function () {
+            if (!probe.width || !probe.height) return;
+            var ratio = probe.width / probe.height;
+            ratio = Math.max(0.65, Math.min(1.7, ratio)); // borne raisonnable (portrait <-> rectangulaire)
+            main.style.aspectRatio = ratio.toFixed(3);
+        };
+        probe.src = img;
+    }
     else main.innerHTML = '<div class="text-gray-500 text-sm">Aucun média</div>';
     var h = '';
     for (var i = 0; i < _productGallery.images.length; i++) {
@@ -4421,9 +4426,20 @@ function _doPublishProduct() {
 function renderMyProducts() {
     var c = document.getElementById('my-products-list');
     if (!c || !myShop) return;
+    var qEl = document.getElementById('my-products-search');
+    var q = qEl ? qEl.value.trim().toLowerCase() : '';
+    var clearBtn = document.getElementById('my-products-search-clear');
+    if (clearBtn) clearBtn.classList.toggle('hidden', !q);
     if (myShop.products.length === 0) { c.innerHTML = '<p class="text-center text-gray-400 text-sm py-10">Aucun produit.</p>'; return; }
+    var indices = [];
+    for (var k = 0; k < myShop.products.length; k++) {
+        var pr = myShop.products[k];
+        if (!q || pr.name.toLowerCase().indexOf(q) !== -1 || (pr.category || '').toLowerCase().indexOf(q) !== -1 || (pr.desc || '').toLowerCase().indexOf(q) !== -1) indices.push(k);
+    }
+    if (indices.length === 0) { c.innerHTML = '<p class="text-center text-gray-400 text-sm py-10">Aucun produit ne correspond à « ' + escapeHtml(q) + ' ».</p>'; return; }
     var h = '';
-    for (var i = 0; i < myShop.products.length; i++) {
+    for (var idx = 0; idx < indices.length; idx++) {
+        var i = indices[idx];
         var p = myShop.products[i];
         var img = getProductMainImage(p);
         var imgCount = (p.images && p.images.length) ? p.images.length : 1;
@@ -4708,164 +4724,116 @@ function trophySvg(trophyId, tier, locked) {
         platinum: { light:'#eaf2ff', main:'#9db3d6', dark:'#45597a' },
         diamond:  { light:'#c9f6ff', main:'#3fbcdb', dark:'#0d6e88' }
     };
-    var c = P[tier] || P.gold;
-    if (locked) c = { light:'#eef1f4', main:'#c3c9d0', dark:'#777f88' };
-    var LAUREL = locked ? '#9aa0a8' : '#8a7a3d';
-    var LAUREL_D = locked ? '#7a8088' : '#5f5226';
-
-    var uid = _trophyUid();
-    var CUP = 'url(#' + uid + 'cup)';
-    var SHEEN = 'url(#' + uid + 'sheen)';
-    var stroke = c.dark;
-
-    var IC = locked ? {
-        main:'#9aa0a8', dark:'#6a7078', light:'#cfd4da', white:'#f3f4f6'
-    } : {
-        main:'#ffffff', dark:'#00000055', light:'#ffffff', white:'#ffffff'
+    // Chaque palier a son propre jeu de couleurs d'accent, dérivé de SA matière :
+    // les icônes d'un trophée bronze restent dans les tons cuivre, un diamant reste dans les tons bleu glacé, etc.
+    var A = {
+        bronze:   { pop:'#e8833a', popD:'#7a4118', soft:'#f3c38a' },
+        silver:   { pop:'#cbd3da', popD:'#48525c', soft:'#eef1f4' },
+        gold:     { pop:'#f5c518', popD:'#8a5f0a', soft:'#fde896' },
+        platinum: { pop:'#bcd0ea', popD:'#3e5570', soft:'#eaf2ff' },
+        diamond:  { pop:'#5fd4ee', popD:'#0b6a86', soft:'#c9f6ff' }
     };
+    var c = P[tier] || P.gold, a = A[tier] || A.gold;
+    if (locked) { c = { light:'#eef1f4', main:'#c3c9d0', dark:'#777f88' }; a = { pop:'#aeb4bb', popD:'#6a7078', soft:'#dde1e5' }; }
+    var uid = _trophyUid();
+    var GRAD = 'url(#' + uid + 'g)';
+    var defs = '<defs><linearGradient id="' + uid + 'g" x1="0.1" y1="0" x2="0.9" y2="1">' +
+        '<stop offset="0" stop-color="' + c.light + '"/><stop offset="0.55" stop-color="' + c.main + '"/><stop offset="1" stop-color="' + c.dark + '"/>' +
+        '</linearGradient></defs>';
+    var IC = { skin: locked ? '#cfd4da' : '#f3c99b', skinD: locked ? '#9aa0a8' : '#c48a52',
+        white: '#ffffff', pop: a.pop, popD: a.popD, soft: a.soft, dark: c.dark, main: c.main, light: c.light };
 
-    var defs =
-        '<defs>' +
-        '<linearGradient id="' + uid + 'cup" x1="0.1" y1="0" x2="0.9" y2="1">' +
-            '<stop offset="0" stop-color="' + c.light + '"/>' +
-            '<stop offset="0.5" stop-color="' + c.main + '"/>' +
-            '<stop offset="1" stop-color="' + c.dark + '"/>' +
-        '</linearGradient>' +
-        '<linearGradient id="' + uid + 'sheen" x1="0" y1="0" x2="1" y2="1">' +
-            '<stop offset="0" stop-color="#ffffff" stop-opacity="0.65"/>' +
-            '<stop offset="0.5" stop-color="#ffffff" stop-opacity="0"/>' +
-        '</linearGradient>' +
-        '</defs>';
-
-    function leaf(x, y, ang, len, w) {
-        var r = ang * Math.PI / 180;
-        var dx = Math.cos(r), dy = Math.sin(r);
-        var px = -dy, py = dx;
-        var tx = x + dx * len, ty = y + dy * len;
-        var mx = x + dx * len * 0.5, my = y + dy * len * 0.5;
-        var c1x = mx + px * w, c1y = my + py * w;
-        var c2x = mx - px * w, c2y = my - py * w;
-        return '<path d="M' + x.toFixed(1) + ',' + y.toFixed(1) +
-            ' Q' + c1x.toFixed(1) + ',' + c1y.toFixed(1) + ' ' + tx.toFixed(1) + ',' + ty.toFixed(1) +
-            ' Q' + c2x.toFixed(1) + ',' + c2y.toFixed(1) + ' ' + x.toFixed(1) + ',' + y.toFixed(1) + 'Z" ' +
-            'fill="' + LAUREL + '" stroke="' + LAUREL_D + '" stroke-width="0.5"/>' +
-            '<path d="M' + x.toFixed(1) + ',' + y.toFixed(1) + ' L' + tx.toFixed(1) + ',' + ty.toFixed(1) + '" stroke="' + LAUREL_D + '" stroke-width="0.4" opacity="0.5"/>';
-    }
-    function leafCluster(side) {
-        var mx = side === 'l' ? -1 : 1;
-        var g = '<g>';
-        var anchor = { x: 32, y: 15 };
-        var stemPts = [[32,15],[27,18],[23,23],[20,29],[18,36],[17,44],[18,52]];
-        var pathD = 'M' + stemPts.map(function(p){return (mx*(p[0]-32)+32).toFixed(1)+','+p[1];}).join(' L');
-        g += '<path d="' + pathD + '" fill="none" stroke="' + LAUREL_D + '" stroke-width="0.8" opacity="0.65"/>';
-        var leaves = [
-            [30,16,200,10,3.6],[26,19,205,11,3.8],[22.5,24,210,11.5,4],
-            [20,30,215,11.5,4],[18,37,220,11,4],[17,44,225,10.5,3.8],[18,51,230,9.5,3.4]
-        ];
-        leaves.forEach(function (lf) {
-            var x = mx * (lf[0]-32) + 32, ang = mx === -1 ? (180 - lf[2]) : lf[2];
-            g += leaf(x, lf[1], ang, lf[3], lf[4]);
-        });
-        g += '</g>';
-        return g;
-    }
-
-    var base =
-        '<ellipse cx="32" cy="84" rx="13" ry="3" fill="' + stroke + '" opacity="0.25"/>' +
-        '<rect x="19" y="78" width="26" height="7" rx="2" fill="' + CUP + '" stroke="' + stroke + '" stroke-width="1.4"/>' +
-        '<path d="M28,78 L36,78 L33.5,65 L30.5,65 Z" fill="' + CUP + '" stroke="' + stroke + '" stroke-width="1.2"/>' +
-        '<circle cx="32" cy="71" r="5.6" fill="#1a8f4c" stroke="#0d5c30" stroke-width="1"/>' +
-        '<text x="32" y="73.3" text-anchor="middle" font-family="Arial Black, Arial" font-size="5.6" font-weight="900" fill="#ffffff">GM</text>' +
-        '<path d="M32,8 L49,19 L49,43 L32,60 L15,43 L15,19 Z" fill="' + CUP + '" stroke="' + stroke + '" stroke-width="1.5" stroke-linejoin="round"/>' +
-        '<path d="M32,8 L49,19 L32,34 L15,19 Z" fill="' + SHEEN + '"/>' +
-        '<path d="M15,19 L15,43 L32,60 L32,34 Z" fill="#000000" opacity="0.10"/>' +
-        '<circle cx="32" cy="35" r="15.5" fill="' + CUP + '" stroke="' + stroke + '" stroke-width="1.2"/>' +
-        '<circle cx="32" cy="35" r="12.3" fill="#fffdf5" stroke="' + stroke + '" stroke-width="1"/>' +
-        leafCluster('l') + leafCluster('r');
-
+    var shapes = {
+        first_step:    '<path d="M32,4 L54,15 V37 C54,54 44,64 32,70 C20,64 10,54 10,37 V15 Z" fill="' + GRAD + '" stroke="' + c.dark + '" stroke-width="2.4" stroke-linejoin="round"/>',
+        first_purchase:'<path d="M32,4 L54,15 V37 C54,54 44,64 32,70 C20,64 10,54 10,37 V15 Z" fill="' + GRAD + '" stroke="' + c.dark + '" stroke-width="2.4" stroke-linejoin="round"/>',
+        explorer:      '<circle cx="32" cy="34" r="29" fill="' + GRAD + '" stroke="' + c.dark + '" stroke-width="2.4"/>',
+        favorite:      '<circle cx="32" cy="34" r="29" fill="' + GRAD + '" stroke="' + c.dark + '" stroke-width="2.4"/>',
+        regular:       '<path d="M32,4 L54,15 V37 C54,54 44,64 32,70 C20,64 10,54 10,37 V15 Z" fill="' + GRAD + '" stroke="' + c.dark + '" stroke-width="2.4" stroke-linejoin="round"/>',
+        loyal:         '<path d="M32,4 L54,15 V37 C54,54 44,64 32,70 C20,64 10,54 10,37 V15 Z" fill="' + GRAD + '" stroke="' + c.dark + '" stroke-width="2.4" stroke-linejoin="round"/>',
+        big_client:    '<path d="M32,4 L54,22 L44,66 L20,66 L10,22 Z" fill="' + GRAD + '" stroke="' + c.dark + '" stroke-width="2.4" stroke-linejoin="round"/><path d="M10,22 L54,22 M22,4 L18,22 M42,4 L46,22" fill="none" stroke="' + c.dark + '" stroke-width="1" opacity="0.5"/>',
+        super_client:  '<path d="M8,30 L20,10 L32,26 L44,10 L56,30 L50,62 L14,62 Z" fill="' + GRAD + '" stroke="' + c.dark + '" stroke-width="2.4" stroke-linejoin="round"/>',
+        reviewer:      '<path d="M32,4 L54,15 V37 C54,54 44,64 32,70 C20,64 10,54 10,37 V15 Z" fill="' + GRAD + '" stroke="' + c.dark + '" stroke-width="2.4" stroke-linejoin="round"/>',
+        critic:        '<circle cx="32" cy="30" r="26" fill="' + GRAD + '" stroke="' + c.dark + '" stroke-width="2.4"/><path d="M32,56 L18,70 L24,54 Z M32,56 L46,70 L40,54 Z" fill="' + c.dark + '"/>',
+        sponsor:       '<path d="M32,4 L54,15 V37 C54,54 44,64 32,70 C20,64 10,54 10,37 V15 Z" fill="' + GRAD + '" stroke="' + c.dark + '" stroke-width="2.4" stroke-linejoin="round"/>',
+        super_sponsor: '<path d="M32,3 L58,19 V49 L32,65 L6,49 V19 Z" fill="' + GRAD + '" stroke="' + c.dark + '" stroke-width="2.4" stroke-linejoin="round"/>',
+        ambassador:    '<path d="M8,30 L20,10 L32,26 L44,10 L56,30 L50,62 L14,62 Z" fill="' + GRAD + '" stroke="' + c.dark + '" stroke-width="2.4" stroke-linejoin="round"/>',
+        active:        '<path d="M34,2 L10,38 H26 L22,70 L54,30 H36 Z" fill="' + GRAD + '" stroke="' + c.dark + '" stroke-width="2.4" stroke-linejoin="round"/>'
+    };
+    var outer = shapes[trophyId] || shapes.loyal;
     var glyph = trophyGlyph(trophyId, IC, locked);
-    var svg = '<svg viewBox="0 0 64 90" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">' + defs + base +
-        '<g transform="translate(32,35) scale(0.52)">' + glyph + '</g>' + '</svg>';
-    return svg;
+    return '<svg viewBox="0 0 64 76" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">' + defs + outer +
+        '<g transform="translate(32,33) scale(0.62)">' + glyph + '</g></svg>';
 }
-
 function trophyGlyph(id, IC, locked) {
-    var RED = locked ? IC.main : '#ef4444', RD = locked ? IC.dark : '#991b1b';
-    var BLUE = locked ? IC.main : '#3b82f6', BD = locked ? IC.dark : '#1e40af';
-    var GREEN = locked ? IC.main : '#22c55e', GD = locked ? IC.dark : '#15803d';
-    var GOLD = locked ? IC.main : '#f5b301', GOD = locked ? IC.dark : '#92400e';
-    var CYAN = locked ? IC.main : '#22d3ee', CYD = locked ? IC.dark : '#0e7490';
-    var SKIN = locked ? IC.light : '#fbbf24', SKD = locked ? IC.dark : '#b45309';
-    var W = '#ffffff';
+    var POP = IC.pop, POPD = IC.popD, SOFT = IC.soft, DARK = IC.dark, MAIN = IC.main, LIGHT = IC.light, W = IC.white;
     switch (id) {
         case 'first_step': {
-            var s = _starPath(0, -2, 17, 7, 5, -Math.PI/2);
-            return '<path d="' + s + '" fill="' + GOLD + '" stroke="' + GOD + '" stroke-width="2" stroke-linejoin="round"/>';
+            var s = _starPath(0, -2, 18, 7.5, 5, -Math.PI/2);
+            return '<path d="' + s + '" fill="' + SOFT + '" stroke="' + DARK + '" stroke-width="2" stroke-linejoin="round"/>';
         }
         case 'first_purchase':
-            return '<path d="M-20,-8 L20,-8 L16,26 L-16,26 Z" fill="' + GOLD + '" stroke="' + GOD + '" stroke-width="2" stroke-linejoin="round"/>' +
-                '<path d="M-10,-8 C-10,-20 10,-20 10,-8" fill="none" stroke="' + GOD + '" stroke-width="3" stroke-linecap="round"/>' +
-                '<circle cx="-6" cy="18" r="3.4" fill="' + RED + '" stroke="' + RD + '" stroke-width="1"/>' +
-                '<circle cx="8" cy="18" r="3.4" fill="' + RED + '" stroke="' + RD + '" stroke-width="1"/>';
+            return '<path d="M-20,-8 L20,-8 L16,26 L-16,26 Z" fill="' + SOFT + '" stroke="' + DARK + '" stroke-width="2" stroke-linejoin="round"/>' +
+                '<path d="M-10,-8 C-10,-20 10,-20 10,-8" fill="none" stroke="' + DARK + '" stroke-width="3" stroke-linecap="round"/>' +
+                '<circle cx="-6" cy="18" r="3.4" fill="' + POP + '" stroke="' + POPD + '" stroke-width="1"/>' +
+                '<circle cx="8" cy="18" r="3.4" fill="' + POP + '" stroke="' + POPD + '" stroke-width="1"/>';
         case 'explorer':
-            return '<circle cx="0" cy="0" r="22" fill="none" stroke="' + GOD + '" stroke-width="2"/>' +
-                '<path d="M0,-18 L6,0 L0,4 L-6,0 Z" fill="' + RED + '" stroke="' + RD + '" stroke-width="1"/>' +
-                '<path d="M0,18 L-6,0 L0,-4 L6,0 Z" fill="' + BLUE + '" stroke="' + BD + '" stroke-width="1"/>' +
-                '<circle cx="0" cy="0" r="3.4" fill="' + GOLD + '" stroke="' + GOD + '" stroke-width="1"/>';
+            return '<circle cx="0" cy="0" r="22" fill="none" stroke="' + DARK + '" stroke-width="2"/>' +
+                '<path d="M0,-18 L6,0 L0,4 L-6,0 Z" fill="' + POP + '" stroke="' + POPD + '" stroke-width="1"/>' +
+                '<path d="M0,18 L-6,0 L0,-4 L6,0 Z" fill="' + SOFT + '" stroke="' + DARK + '" stroke-width="1"/>' +
+                '<circle cx="0" cy="0" r="3.4" fill="' + W + '" stroke="' + DARK + '" stroke-width="1"/>';
         case 'favorite': {
             var h = 'M0,24 C-26,4 -28,-16 -14,-22 C-5,-26 0,-18 0,-12 C0,-18 5,-26 14,-22 C28,-16 26,4 0,24 Z';
-            return '<path d="' + h + '" fill="' + RED + '" stroke="' + RD + '" stroke-width="2" stroke-linejoin="round"/>' +
-                '<path d="M-12,-8 Q-14,-16 -4,-18" fill="none" stroke="' + W + '" stroke-width="3" stroke-linecap="round" opacity="0.85"/>';
+            return '<path d="' + h + '" fill="' + POP + '" stroke="' + POPD + '" stroke-width="2" stroke-linejoin="round"/>' +
+                '<path d="M-12,-8 Q-14,-16 -4,-18" fill="none" stroke="' + W + '" stroke-width="3" stroke-linecap="round" opacity="0.8"/>';
         }
         case 'regular':
-            return '<path d="M-14,0 L-3,13 L15,-11" fill="none" stroke="' + GD + '" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>' +
-                '<path d="M-14,0 L-3,13 L15,-11" fill="none" stroke="' + GREEN + '" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>';
+            return '<path d="M-14,0 L-3,13 L15,-11" fill="none" stroke="' + DARK + '" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>' +
+                '<path d="M-14,0 L-3,13 L15,-11" fill="none" stroke="' + POP + '" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>';
         case 'loyal': {
             var s2 = _starPath(0, 0, 18, 7.5, 5, -Math.PI/2);
-            return '<path d="' + s2 + '" fill="' + GOLD + '" stroke="' + GOD + '" stroke-width="2" stroke-linejoin="round"/>';
+            return '<path d="' + s2 + '" fill="' + SOFT + '" stroke="' + DARK + '" stroke-width="2" stroke-linejoin="round"/>';
         }
         case 'big_client':
-            return '<path d="M-16,-10 L16,-10 L0,26 Z" fill="' + CYAN + '" stroke="' + CYD + '" stroke-width="2" stroke-linejoin="round"/>' +
-                '<path d="M-16,-10 L0,-22 L16,-10 Z" fill="' + CYAN + '" stroke="' + CYD + '" stroke-width="2" stroke-linejoin="round"/>' +
-                '<path d="M-16,-10 L16,-10" stroke="' + CYD + '" stroke-width="1" opacity="0.6"/>' +
-                '<path d="M0,-22 L0,26" stroke="' + CYD + '" stroke-width="0.8" opacity="0.5"/>' +
-                '<path d="M-16,-10 L0,-22 L16,-10 Z" fill="#ffffff" opacity="0.3"/>';
+            return '<path d="M-16,-10 L16,-10 L0,26 Z" fill="' + SOFT + '" stroke="' + DARK + '" stroke-width="2" stroke-linejoin="round"/>' +
+                '<path d="M-16,-10 L0,-22 L16,-10 Z" fill="' + POP + '" stroke="' + POPD + '" stroke-width="2" stroke-linejoin="round"/>' +
+                '<path d="M-16,-10 L0,-22 L16,-10 Z" fill="#ffffff" opacity="0.25"/>';
         case 'super_client':
-            return '<path d="M-20,10 L-16,-16 L-8,0 L0,-20 L8,0 L16,-16 L20,10 Z" fill="' + CYAN + '" stroke="' + CYD + '" stroke-width="2" stroke-linejoin="round"/>' +
-                '<rect x="-20" y="10" width="40" height="7" rx="1.5" fill="' + CYAN + '" stroke="' + CYD + '" stroke-width="2"/>' +
-                '<circle cx="-16" cy="-16" r="2.8" fill="' + RED + '"/><circle cx="0" cy="-20" r="3.2" fill="' + W + '"/><circle cx="16" cy="-16" r="2.8" fill="' + GREEN + '"/>';
+            return '<path d="M-20,10 L-16,-16 L-8,0 L0,-20 L8,0 L16,-16 L20,10 Z" fill="' + SOFT + '" stroke="' + DARK + '" stroke-width="2" stroke-linejoin="round"/>' +
+                '<rect x="-20" y="10" width="40" height="7" rx="1.5" fill="' + POP + '" stroke="' + POPD + '" stroke-width="2"/>' +
+                '<circle cx="-16" cy="-16" r="2.8" fill="' + W + '"/><circle cx="0" cy="-20" r="3.2" fill="' + W + '"/><circle cx="16" cy="-16" r="2.8" fill="' + W + '"/>';
         case 'reviewer': {
             var st1 = _starPath(-11, 0, 5.2, 2.2), st2 = _starPath(0, 0, 5.2, 2.2), st3 = _starPath(11, 0, 5.2, 2.2);
-            return '<path d="' + st1 + '" fill="' + GOLD + '" stroke="' + GOD + '" stroke-width="0.8"/>' +
-                '<path d="' + st2 + '" fill="' + GOLD + '" stroke="' + GOD + '" stroke-width="0.8"/>' +
-                '<path d="' + st3 + '" fill="' + GOLD + '" stroke="' + GOD + '" stroke-width="0.8"/>';
+            return '<path d="' + st1 + '" fill="' + SOFT + '" stroke="' + DARK + '" stroke-width="0.8"/>' +
+                '<path d="' + st2 + '" fill="' + SOFT + '" stroke="' + DARK + '" stroke-width="0.8"/>' +
+                '<path d="' + st3 + '" fill="' + SOFT + '" stroke="' + DARK + '" stroke-width="0.8"/>';
         }
         case 'critic':
-            return '<text x="0" y="8" text-anchor="middle" font-family="Arial Black, Arial" font-size="24" font-weight="900" fill="' + GOLD + '" stroke="' + GOD + '" stroke-width="0.8">A+</text>';
+            return '<circle cx="0" cy="0" r="20" fill="' + SOFT + '" stroke="' + DARK + '" stroke-width="2"/>' +
+                '<text x="0" y="7" text-anchor="middle" font-family="Arial Black, Arial" font-size="19" font-weight="900" fill="' + POPD + '">A+</text>';
         case 'sponsor':
-            return '<circle cx="-9" cy="-10" r="6.2" fill="' + SKIN + '" stroke="' + SKD + '" stroke-width="1"/>' +
-                '<path d="M-19,18 C-19,5 -14,-2 -9,-2 C-4,-2 1,5 1,18 Z" fill="' + BLUE + '" stroke="' + BD + '" stroke-width="1"/>' +
-                '<circle cx="9" cy="-10" r="6.2" fill="' + SKIN + '" stroke="' + SKD + '" stroke-width="1"/>' +
-                '<path d="M-1,18 C-1,5 4,-2 9,-2 C14,-2 19,5 19,18 Z" fill="' + GREEN + '" stroke="' + GD + '" stroke-width="1"/>';
+            return '<circle cx="-9" cy="-10" r="6.2" fill="' + IC.skin + '" stroke="' + IC.skinD + '" stroke-width="1"/>' +
+                '<path d="M-19,18 C-19,5 -14,-2 -9,-2 C-4,-2 1,5 1,18 Z" fill="' + POP + '" stroke="' + POPD + '" stroke-width="1"/>' +
+                '<circle cx="9" cy="-10" r="6.2" fill="' + IC.skin + '" stroke="' + IC.skinD + '" stroke-width="1"/>' +
+                '<path d="M-1,18 C-1,5 4,-2 9,-2 C14,-2 19,5 19,18 Z" fill="' + SOFT + '" stroke="' + DARK + '" stroke-width="1"/>';
         case 'super_sponsor':
-            return '<circle cx="-15" cy="-8" r="5.4" fill="' + SKIN + '" stroke="' + SKD + '" stroke-width="0.9"/>' +
-                '<circle cx="0" cy="-12" r="5.4" fill="' + SKIN + '" stroke="' + SKD + '" stroke-width="0.9"/>' +
-                '<circle cx="15" cy="-8" r="5.4" fill="' + SKIN + '" stroke="' + SKD + '" stroke-width="0.9"/>' +
-                '<path d="M-24,18 C-24,7 -20,2 -15,2 C-10,2 -6,7 -6,18 Z" fill="' + RED + '" stroke="' + RD + '" stroke-width="0.9"/>' +
-                '<path d="M-9,18 C-9,6 -5,1 0,1 C5,1 9,6 9,18 Z" fill="' + BLUE + '" stroke="' + BD + '" stroke-width="0.9"/>' +
-                '<path d="M6,18 C6,7 10,2 15,2 C20,2 24,7 24,18 Z" fill="' + GREEN + '" stroke="' + GD + '" stroke-width="0.9"/>';
+            return '<circle cx="-15" cy="-8" r="5.4" fill="' + IC.skin + '" stroke="' + IC.skinD + '" stroke-width="0.9"/>' +
+                '<circle cx="0" cy="-12" r="5.4" fill="' + IC.skin + '" stroke="' + IC.skinD + '" stroke-width="0.9"/>' +
+                '<circle cx="15" cy="-8" r="5.4" fill="' + IC.skin + '" stroke="' + IC.skinD + '" stroke-width="0.9"/>' +
+                '<path d="M-24,18 C-24,7 -20,2 -15,2 C-10,2 -6,7 -6,18 Z" fill="' + POP + '" stroke="' + POPD + '" stroke-width="0.9"/>' +
+                '<path d="M-9,18 C-9,6 -5,1 0,1 C5,1 9,6 9,18 Z" fill="' + SOFT + '" stroke="' + DARK + '" stroke-width="0.9"/>' +
+                '<path d="M6,18 C6,7 10,2 15,2 C20,2 24,7 24,18 Z" fill="' + POP + '" stroke="' + POPD + '" stroke-width="0.9"/>';
         case 'ambassador': {
             var ts = _starPath(0, -20, 5, 2.2, 5, -Math.PI/2);
-            return '<path d="M-20,16 L-17,-10 L-8,4 L0,-16 L8,4 L17,-10 L20,16 Z" fill="' + CYAN + '" stroke="' + CYD + '" stroke-width="2" stroke-linejoin="round"/>' +
-                '<rect x="-20" y="16" width="40" height="7" rx="1.5" fill="' + CYAN + '" stroke="' + CYD + '" stroke-width="2"/>' +
-                '<path d="' + ts + '" fill="' + GOLD + '" stroke="' + GOD + '" stroke-width="0.9"/>' +
-                '<circle cx="-17" cy="-10" r="3" fill="' + RED + '"/><circle cx="17" cy="-10" r="3" fill="' + CYAN + '"/>';
+            return '<path d="M-20,16 L-17,-10 L-8,4 L0,-16 L8,4 L17,-10 L20,16 Z" fill="' + SOFT + '" stroke="' + DARK + '" stroke-width="2" stroke-linejoin="round"/>' +
+                '<rect x="-20" y="16" width="40" height="7" rx="1.5" fill="' + POP + '" stroke="' + POPD + '" stroke-width="2"/>' +
+                '<path d="' + ts + '" fill="' + W + '" stroke="' + DARK + '" stroke-width="0.9"/>' +
+                '<circle cx="-17" cy="-10" r="3" fill="' + POP + '"/><circle cx="17" cy="-10" r="3" fill="' + POP + '"/>';
         }
         case 'active':
-            return '<path d="M5,-24 L-14,2 L-3,2 L-6,24 L15,-6 L3,-6 Z" fill="' + GOLD + '" stroke="' + GOD + '" stroke-width="2" stroke-linejoin="round"/>';
+            return '<path d="M5,-24 L-14,2 L-3,2 L-6,24 L15,-6 L3,-6 Z" fill="' + SOFT + '" stroke="' + DARK + '" stroke-width="2" stroke-linejoin="round"/>';
         default: {
             var fb = _starPath(0, 0, 18, 7);
-            return '<path d="' + fb + '" fill="' + GOLD + '" stroke="' + GOD + '" stroke-width="1.5"/>';
+            return '<path d="' + fb + '" fill="' + SOFT + '" stroke="' + DARK + '" stroke-width="1.5"/>';
         }
     }
 }

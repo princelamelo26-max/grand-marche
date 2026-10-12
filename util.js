@@ -15,6 +15,13 @@ function normPhone(p) {
 }
 const intlPhone = (national) => '242' + national;
 
+const CITIES = ['Brazzaville', 'Pointe-Noire', 'Dolisie', 'Nkayi', 'Ouesso', 'Kintélé', 'Oyo', 'Bétou', 'Gamboma', 'Owando', 'Madingou', 'Impfondo', 'Makoua', 'Sibiti'];
+function normCity(v) {
+  const s = String(v == null ? '' : v).trim();
+  const hit = CITIES.find((c) => c.toLowerCase() === s.toLowerCase());
+  return hit || null;
+}
+
 const uuid = () => crypto.randomUUID();
 const now = () => Date.now();
 
@@ -45,4 +52,4 @@ function rateLimiter(limit, windowMs) {
     return arr.length <= limit;
   };
 }
-module.exports = { HttpError, bad, normPhone, intlPhone, uuid, now, str, optStr, posInt, rateLimiter };
+module.exports = { HttpError, bad, normPhone, intlPhone, uuid, now, str, optStr, posInt, rateLimiter, CITIES, normCity };

@@ -6,14 +6,14 @@ const path = require('node:path');
 const SCHEMA = `
 CREATE TABLE IF NOT EXISTS users (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  phone TEXT NOT NULL UNIQUE, name TEXT NOT NULL, email TEXT,
+  phone TEXT NOT NULL UNIQUE, name TEXT NOT NULL, email TEXT, city TEXT,
   pass_hash TEXT NOT NULL, role TEXT NOT NULL DEFAULT 'user',
   referral_code TEXT UNIQUE, referred_by INTEGER, created_at INTEGER NOT NULL
 );
 CREATE TABLE IF NOT EXISTS shops (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   owner_id INTEGER NOT NULL UNIQUE REFERENCES users(id),
-  name TEXT NOT NULL, category TEXT NOT NULL, address TEXT, phone TEXT NOT NULL,
+  name TEXT NOT NULL, category TEXT NOT NULL, address TEXT, city TEXT, phone TEXT NOT NULL,
   description TEXT, logo TEXT, lat REAL, lng REAL,
   is_certified INTEGER NOT NULL DEFAULT 0, certified_at INTEGER,
   balance INTEGER NOT NULL DEFAULT 0, pending INTEGER NOT NULL DEFAULT 0,

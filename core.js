@@ -4,7 +4,7 @@
  * paiements, retraits, revenus de la plateforme.
  */
 const { tx } = require('./db');
-const { HttpError, bad, uuid, now, str, optStr, posInt } = require('./util');
+const { HttpError, bad, uuid, now, str, optStr, posInt, normCity } = require('./util');
 
 const CATEGORIES = ['Alimentation locale', 'Électronique', 'Mode et Vêtements', 'Maison et Déco', 'Beauté et Soins', 'Sport et Jeux', 'Artisanat', 'Véhicules', 'Immobilier', 'Services', 'Animaux', 'Bébé et Enfant', 'Livres et Papeterie', 'Jeux vidéo', 'Santé et Bien-être', 'Agriculture', 'Restauration', 'Autre'];
 const MAX_IMG = 450 * 1024; // taille max d'une image (URL ou data URI)
@@ -19,7 +19,7 @@ function createCore(db, provider, cfg, log = console) {
 
   /* ---------- Vues ---------- */
   const shopView = (s, mine) => s && ({
-    id: s.id, name: s.name, category: s.category, address: s.address, phone: s.phone,
+    id: s.id, name: s.name, category: s.category, address: s.address, city: s.city, phone: s.phone,
     description: s.description, logo: s.logo, lat: s.lat, lng: s.lng,
     isCertified: !!s.is_certified,
     rating: s.rating_count ? Math.round((s.rating_sum / s.rating_count) * 10) / 10 : 0,
@@ -66,8 +66,9 @@ function createCore(db, provider, cfg, log = console) {
     const name = str(d.name, 2, 60, 'Nom de la boutique');
     const category = CATEGORIES.includes(d.category) ? d.category : 'Autre';
     const logo = d.logo ? cleanImages([d.logo])[0] || null : null;
-    const r = run(`INSERT INTO shops(owner_id,name,category,address,phone,description,logo,lat,lng,created_at)
-                   VALUES(?,?,?,?,?,?,?,?,?,?)`, user.id, name, category, optStr(d.address, 160), user.phone,
+    const city = normCity(d.city) || user.city || null;
+    const r = run(`INSERT INTO shops(owner_id,name,category,address,city,phone,description,logo,lat,lng,created_at)
+                   VALUES(?,?,?,?,?,?,?,?,?,?,?)`, user.id, name, category, optStr(d.address, 160), city, user.phone,
       optStr(d.description, 500), logo, Number.isFinite(+d.lat) && d.lat != null ? +d.lat : null,
       Number.isFinite(+d.lng) && d.lng != null ? +d.lng : null, now());
     return shopView(get('SELECT * FROM shops WHERE id=?', r.lastInsertRowid), true);
@@ -77,8 +78,9 @@ function createCore(db, provider, cfg, log = console) {
     const name = d.name != null ? str(d.name, 2, 60, 'Nom de la boutique') : s.name;
     const category = d.category != null && CATEGORIES.includes(d.category) ? d.category : s.category;
     const logo = d.logo !== undefined ? (d.logo ? cleanImages([d.logo])[0] || null : null) : s.logo;
-    run('UPDATE shops SET name=?,category=?,address=?,description=?,logo=?,lat=?,lng=? WHERE id=?',
-      name, category, d.address !== undefined ? optStr(d.address, 160) : s.address,
+    const newCity = d.city !== undefined ? (normCity(d.city) || s.city) : s.city;
+    run('UPDATE shops SET name=?,category=?,address=?,city=?,description=?,logo=?,lat=?,lng=? WHERE id=?',
+      name, category, d.address !== undefined ? optStr(d.address, 160) : s.address, newCity,
       d.description !== undefined ? optStr(d.description, 500) : s.description, logo,
       d.lat !== undefined && Number.isFinite(+d.lat) && d.lat !== null ? +d.lat : s.lat,
       d.lng !== undefined && Number.isFinite(+d.lng) && d.lng !== null ? +d.lng : s.lng, s.id);

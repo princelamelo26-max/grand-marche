@@ -65,13 +65,20 @@ var GM = (function () {
             ['dash-commission-rate', 'wallet-commission-rate'].forEach(function (id) {
                 var el = document.getElementById(id); if (el) el.textContent = 'Commission ' + pct + ' %';
             });
+            ['reg-city', 'sel-city'].forEach(function (id) {
+                var sel = document.getElementById(id); if (!sel || sel.options.length > 1) return;
+                (c.cities || []).forEach(function (city) {
+                    var o = document.createElement('option'); o.value = city; o.textContent = city; sel.appendChild(o);
+                });
+            });
             return loadCatalog();
         }).catch(function () { /* hors-ligne : on garde les données locales */ });
     }
     function mapShop(s) {
+        /* s.city : ville de la boutique, renvoyée par le serveur */
         var mine = typeof myShop !== 'undefined' && myShop && (myShop.serverShopId === s.id || myShop.phone === s.phone);
         return {
-            serverId: s.id, name: s.name, initials: getInitials(s.name), logo: s.logo || '', category: s.category,
+            serverId: s.id, name: s.name, initials: getInitials(s.name), logo: s.logo || '', category: s.category, city: s.city || '',
             colorBg: 'bg-orange-600', isCertified: !!s.isCertified, isGoldenCertified: false,
             globalRating: s.rating, reviewsCount: s.reviewsCount, critDelivery: s.critDelivery, critQuality: s.critQuality, critBehavior: s.critBehavior,
             phone: s.phone, ownerPhone: s.phone, sixStarPoints: s.isCertified ? 1000 : 0, address: s.address || '', description: s.description || '',

@@ -62,6 +62,7 @@
             </div>
             <div><label class="block text-sm font-medium text-gray-700 mb-1">Adresse email</label><input type="email" id="reg-email" placeholder="exemple@email.com" class="w-full border rounded-lg p-3"></div>
             <div><label class="block text-sm font-medium text-gray-700 mb-1">Mot de passe</label><input type="password" id="reg-pass" placeholder="Min 6 caractères" class="w-full border rounded-lg p-3"></div>
+            <div><label class="block text-sm font-medium text-gray-700 mb-1">Ville</label><select id="reg-city" class="w-full border rounded-lg p-3 bg-white"><option value="">Choisissez votre ville</option></select></div>
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Code parrain <span class="text-gray-400 font-normal">(optionnel)</span></label>
                 <input type="text" id="reg-referral" placeholder="Ex : GM0000" class="w-full border rounded-lg p-3 uppercase">
@@ -119,6 +120,7 @@
                 <div><label class="block text-sm font-medium mb-1">Téléphone</label><div class="flex items-center border rounded-lg p-3 bg-white"><span class="text-gray-500 pr-2 border-r">+242</span><input type="tel" id="sel-phone" oninput="updateSellerSteps()" class="w-full pl-3"></div></div>
                 <div><label class="block text-sm font-medium mb-1">Adresse email</label><input type="email" id="sel-email" oninput="updateSellerSteps()" placeholder="exemple@email.com" class="w-full border rounded-lg p-3 bg-white"></div>
                 <div id="sel-pass-wrap"><label class="block text-sm font-medium mb-1">Mot de passe</label><input type="password" id="sel-pass" oninput="updateSellerSteps()" class="w-full border rounded-lg p-3 bg-white"></div>
+                <div id="sel-city-wrap"><label class="block text-sm font-medium mb-1">Ville</label><select id="sel-city" oninput="updateSellerSteps()" class="w-full border rounded-lg p-3 bg-white"><option value="">Choisissez votre ville</option></select></div>
             </div>
         </div>
         <div class="bg-gray-50 p-3 rounded-lg">
@@ -964,6 +966,13 @@
     <div class="bg-orange-500 text-white p-4 pt-8 flex justify-between items-center flex-shrink-0">
         <h1 class="font-bold text-lg">Mes produits</h1>
         <button onclick="resetProductForm(); showScreen('add-product-screen')" class="bg-white text-orange-500 font-bold text-sm py-1.5 px-3 rounded-full flex items-center gap-1"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>Ajouter</button>
+    </div>
+    <div class="p-3 pb-0 flex-shrink-0">
+        <div class="bg-white rounded-full border flex items-center px-3 py-2 gap-2">
+            <svg class="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 10.5a6.5 6.5 0 11-13 0 6.5 6.5 0 0113 0z"></path></svg>
+            <input type="text" id="my-products-search" oninput="renderMyProducts()" placeholder="Rechercher dans mes produits..." class="flex-1 bg-transparent outline-none text-sm">
+            <button id="my-products-search-clear" onclick="document.getElementById('my-products-search').value='';renderMyProducts()" class="text-gray-400 hidden"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+        </div>
     </div>
     <div class="flex-1 overflow-y-auto p-4 space-y-3" id="my-products-list"></div>
     <div class="bg-white border-t p-3 flex justify-between flex-shrink-0">

@@ -7,7 +7,7 @@ const { open } = require('./db');
 const { hashPassword, verifyPassword, makeTokens } = require('./auth');
 const { createProvider, OPERATORS } = require('./providers');
 const { createCore } = require('./core');
-const { HttpError, bad, normPhone, now, str, optStr, rateLimiter } = require('./util');
+const { HttpError, bad, normPhone, now, str, optStr, rateLimiter, CITIES, normCity } = require('./util');
 
 /* ---------- Configuration ---------- */
 function loadEnvFile(file) {
@@ -52,7 +52,7 @@ function createApp(cfg, injectedProvider) {
   const run = (sql, ...a) => db.prepare(sql).run(...a);
   const authLimit = rateLimiter(12, 60 * 1000), payLimit = rateLimiter(15, 60 * 1000), writeLimit = rateLimiter(120, 60 * 1000);
 
-  const userView = (u) => ({ id: u.id, name: u.name, phone: u.phone, email: u.email, role: u.role, referralCode: u.referral_code });
+  const userView = (u) => ({ id: u.id, name: u.name, phone: u.phone, email: u.email, city: u.city, role: u.role, referralCode: u.referral_code });
   const publicPayment = (p) => p && ({ id: p.id, purpose: p.purpose, refId: p.ref_id, amount: p.amount, status: p.status, failure: p.failure, createdAt: p.created_at });
   const session = (u) => ({ token: tokens.issue(u.id), user: userView(u), shop: core.shopView(core.shopOf(u), true) });
   const checkPhone = (v) => { const p = normPhone(v); if (!p) throw bad('Numéro de téléphone invalide (ex : 06 123 45 67).'); return p; };
@@ -71,7 +71,7 @@ function createApp(cfg, injectedProvider) {
   route('GET', '/api/config', () => ({
     boostPrice: cfg.BOOST_PRICE, boostDays: cfg.BOOST_DAYS, certificationPrice: cfg.CERTIFICATION_PRICE,
     withdrawalFeeRate: cfg.WITHDRAWAL_FEE_RATE, minWithdrawal: cfg.MIN_WITHDRAWAL, paymentProvider: provider.name,
-    operators: Object.keys(OPERATORS), categories: core.CATEGORIES
+    operators: Object.keys(OPERATORS), categories: core.CATEGORIES, cities: CITIES
   }));
 
   // --- Comptes
@@ -81,11 +81,13 @@ function createApp(cfg, injectedProvider) {
     if (typeof body.password !== 'string' || body.password.length < 6 || body.password.length > 100) throw bad('Mot de passe : 6 caractères minimum.');
     const email = optStr(body.email, 120);
     if (email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) throw bad('Email invalide.');
+    const city = normCity(body.city);
+    if (!city) throw bad('Choisissez votre ville dans la liste proposée.');
     if (get('SELECT 1 x FROM users WHERE phone=?', phone)) throw new HttpError(409, 'Ce numéro a déjà un compte. Connectez-vous.');
     const ref = body.referral ? get('SELECT id FROM users WHERE referral_code=?', String(body.referral).trim().toUpperCase()) : null;
     const role = cfg.ADMIN_PHONE && cfg.ADMIN_PHONE === phone ? 'admin' : 'user';
-    const r = run('INSERT INTO users(phone,name,email,pass_hash,role,referral_code,referred_by,created_at) VALUES(?,?,?,?,?,?,?,?)',
-      phone, name, email, hashPassword(body.password), role, mkReferral(), ref ? ref.id : null, now());
+    const r = run('INSERT INTO users(phone,name,email,city,pass_hash,role,referral_code,referred_by,created_at) VALUES(?,?,?,?,?,?,?,?,?)',
+      phone, name, email, city, hashPassword(body.password), role, mkReferral(), ref ? ref.id : null, now());
     return session(get('SELECT * FROM users WHERE id=?', r.lastInsertRowid));
   });
   route('POST', '/api/auth/login', ({ body, ip }) => {
