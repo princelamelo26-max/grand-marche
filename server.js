@@ -3,9 +3,10 @@ const http = require('node:http');
 const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
-const { open } = require('./db');
+const { open, bindQueries } = require('./db');
 const { hashPassword, verifyPassword, makeTokens } = require('./auth');
 const { createProvider, OPERATORS } = require('./providers');
+const { createEmailProvider } = require('./email');
 const { createCore } = require('./core');
 const { HttpError, bad, normPhone, now, str, optStr, rateLimiter, CITIES, normCity } = require('./util');
 
@@ -23,12 +24,15 @@ function buildConfig(overrides = {}) {
   const num = (k, d) => (e[k] !== undefined && e[k] !== '' && Number.isFinite(+e[k]) ? +e[k] : d);
   const cfg = {
     PORT: num('PORT', 3000), PUBLIC_URL: e.PUBLIC_URL || '', DATA_DIR: e.DATA_DIR || path.join(__dirname, 'data'),
+    TURSO_DATABASE_URL: e.TURSO_DATABASE_URL || '', TURSO_AUTH_TOKEN: e.TURSO_AUTH_TOKEN || '',
     TOKEN_SECRET: e.TOKEN_SECRET, ALLOWED_ORIGINS: (e.ALLOWED_ORIGINS || '').split(',').map((s) => s.trim()).filter(Boolean),
     ADMIN_PHONE: normPhone(e.ADMIN_PHONE), WEBHOOK_SECRET: e.WEBHOOK_SECRET || '',
     BOOST_PRICE: num('BOOST_PRICE', 1500), BOOST_DAYS: num('BOOST_DAYS', 7), CERTIFICATION_PRICE: num('CERTIFICATION_PRICE', 30000),
     WITHDRAWAL_FEE_RATE: num('WITHDRAWAL_FEE_RATE', 0.03), MIN_WITHDRAWAL: num('MIN_WITHDRAWAL', 500),
     PAYMENT_PROVIDER: e.PAYMENT_PROVIDER || 'mock', PAWAPAY_TOKEN: e.PAWAPAY_TOKEN, PAWAPAY_BASE_URL: e.PAWAPAY_BASE_URL,
     MOCK_DELAY_MS: e.MOCK_DELAY_MS !== undefined ? num('MOCK_DELAY_MS', 1500) : undefined,
+    EMAIL_PROVIDER: e.EMAIL_PROVIDER || 'mock', BREVO_API_KEY: e.BREVO_API_KEY,
+    BREVO_SENDER_EMAIL: e.BREVO_SENDER_EMAIL, BREVO_SENDER_NAME: e.BREVO_SENDER_NAME || 'Grand Marché',
     PUBLIC_DIR: e.PUBLIC_DIR || __dirname, QUIET: !!e.QUIET
   };
   if (!cfg.TOKEN_SECRET) {
@@ -42,22 +46,23 @@ function buildConfig(overrides = {}) {
 
 const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.json': 'application/json', '.png': 'image/png', '.jpg': 'image/jpeg', '.svg': 'image/svg+xml', '.ico': 'image/x-icon', '.webmanifest': 'application/manifest+json' };
 
-function createApp(cfg, injectedProvider) {
+async function createApp(cfg, injectedProvider) {
   const log = cfg.QUIET ? { error() {}, warn() {}, log() {} } : console;
-  const db = open(cfg.DATA_DIR === ':memory:' ? ':memory:' : cfg.DATA_DIR);
+  const db = await open(cfg);
+  if (!cfg.QUIET) console.log('Base de données :', db.kind === 'turso' ? 'Turso (persistante)' : 'fichier local (' + (cfg.DATA_DIR === ':memory:' ? 'mémoire' : cfg.DATA_DIR) + ' — effacée si le serveur redémarre)');
   const provider = injectedProvider || createProvider(cfg);
+  const emailProvider = createEmailProvider(cfg, log);
   const core = createCore(db, provider, cfg, log);
   const tokens = makeTokens(cfg.TOKEN_SECRET);
-  const get = (sql, ...a) => db.prepare(sql).get(...a);
-  const run = (sql, ...a) => db.prepare(sql).run(...a);
-  const authLimit = rateLimiter(12, 60 * 1000), payLimit = rateLimiter(15, 60 * 1000), writeLimit = rateLimiter(120, 60 * 1000);
+  const { get, run, all } = bindQueries(db);
+  const authLimit = rateLimiter(20, 60 * 1000), payLimit = rateLimiter(15, 60 * 1000), writeLimit = rateLimiter(120, 60 * 1000);
 
   const userView = (u) => ({ id: u.id, name: u.name, phone: u.phone, email: u.email, city: u.city, role: u.role, referralCode: u.referral_code });
   const publicPayment = (p) => p && ({ id: p.id, purpose: p.purpose, refId: p.ref_id, amount: p.amount, status: p.status, failure: p.failure, createdAt: p.created_at });
-  const session = (u) => ({ token: tokens.issue(u.id), user: userView(u), shop: core.shopView(core.shopOf(u), true) });
+  const session = async (u) => ({ token: tokens.issue(u.id), user: userView(u), shop: core.shopView(await core.shopOf(u), true) });
   const checkPhone = (v) => { const p = normPhone(v); if (!p) throw bad('Numéro de téléphone invalide (ex : 06 123 45 67).'); return p; };
   const operatorOf = (v) => { if (!OPERATORS[v]) throw bad('Opérateur invalide (mtn ou airtel).'); return v; };
-  const mkReferral = () => { for (;;) { const c = 'GM' + crypto.randomBytes(3).toString('hex').toUpperCase().slice(0, 4); if (!get('SELECT 1 x FROM users WHERE referral_code=?', c)) return c; } };
+  const mkReferral = async () => { for (;;) { const c = 'GM' + crypto.randomBytes(3).toString('hex').toUpperCase().slice(0, 4); if (!(await get('SELECT 1 x FROM users WHERE referral_code=?', c))) return c; } };
 
   /* ---------- Routes ---------- */
   const routes = [];
@@ -75,7 +80,7 @@ function createApp(cfg, injectedProvider) {
   }));
 
   // --- Comptes
-  route('POST', '/api/auth/register', ({ body, ip }) => {
+  route('POST', '/api/auth/register', async ({ body, ip }) => {
     if (!authLimit('reg:' + ip)) throw new HttpError(429, 'Trop de tentatives. Réessayez dans une minute.');
     const name = str(body.name, 2, 60, 'Nom'), phone = checkPhone(body.phone);
     if (typeof body.password !== 'string' || body.password.length < 6 || body.password.length > 100) throw bad('Mot de passe : 6 caractères minimum.');
@@ -83,43 +88,88 @@ function createApp(cfg, injectedProvider) {
     if (email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) throw bad('Email invalide.');
     const city = normCity(body.city);
     if (!city) throw bad('Choisissez votre ville dans la liste proposée.');
-    if (get('SELECT 1 x FROM users WHERE phone=?', phone)) throw new HttpError(409, 'Ce numéro a déjà un compte. Connectez-vous.');
-    const ref = body.referral ? get('SELECT id FROM users WHERE referral_code=?', String(body.referral).trim().toUpperCase()) : null;
+    if (await get('SELECT 1 x FROM users WHERE phone=?', phone)) throw new HttpError(409, 'Ce numéro a déjà un compte. Connectez-vous.');
+    const ref = body.referral ? await get('SELECT id FROM users WHERE referral_code=?', String(body.referral).trim().toUpperCase()) : null;
     const role = cfg.ADMIN_PHONE && cfg.ADMIN_PHONE === phone ? 'admin' : 'user';
-    const r = run('INSERT INTO users(phone,name,email,city,pass_hash,role,referral_code,referred_by,created_at) VALUES(?,?,?,?,?,?,?,?,?)',
-      phone, name, email, city, hashPassword(body.password), role, mkReferral(), ref ? ref.id : null, now());
-    return session(get('SELECT * FROM users WHERE id=?', r.lastInsertRowid));
+    const r = await run('INSERT INTO users(phone,name,email,city,pass_hash,role,referral_code,referred_by,created_at) VALUES(?,?,?,?,?,?,?,?,?)',
+      phone, name, email, city, hashPassword(body.password), role, await mkReferral(), ref ? ref.id : null, now());
+    return session(await get('SELECT * FROM users WHERE id=?', r.lastInsertRowid));
   });
-  route('POST', '/api/auth/login', ({ body, ip }) => {
+  route('POST', '/api/auth/login', async ({ body, ip }) => {
     const phone = normPhone(body.phone);
     if (!authLimit('login:' + ip) || (phone && !authLimit('loginp:' + phone))) throw new HttpError(429, 'Trop de tentatives. Réessayez dans une minute.');
-    const u = phone && get('SELECT * FROM users WHERE phone=?', phone);
+    const u = phone && await get('SELECT * FROM users WHERE phone=?', phone);
     if (!u || typeof body.password !== 'string' || !verifyPassword(body.password, u.pass_hash)) throw new HttpError(401, 'Numéro ou mot de passe incorrect.');
     return session(u);
   });
-  route('GET', '/api/me', { auth: true }, ({ user }) => session(user));
-  route('PUT', '/api/me', { auth: true }, ({ user, body }) => {
-    run('UPDATE users SET name=?, email=? WHERE id=?', body.name ? str(body.name, 2, 60, 'Nom') : user.name, body.email !== undefined ? optStr(body.email, 120) : user.email, user.id);
-    return session(get('SELECT * FROM users WHERE id=?', user.id));
+
+  // --- Mot de passe oublié (code à 6 chiffres envoyé par e-mail, valable 15 minutes)
+  function maskEmail(em) {
+    const i = em.indexOf('@'); if (i < 1) return '***';
+    const name = em.slice(0, i), dom = em.slice(i);
+    return (name.length <= 2 ? name[0] + '*' : name.slice(0, 2) + '*'.repeat(Math.max(1, name.length - 2))) + dom;
+  }
+  route('POST', '/api/auth/forgot-password', async ({ body, ip }) => {
+    const phone = normPhone(body.phone);
+    if (!authLimit('forgot:' + ip) || (phone && !authLimit('forgotp:' + phone))) throw new HttpError(429, 'Trop de tentatives. Réessayez dans une minute.');
+    const generic = { ok: true, message: 'Si ce numéro correspond à un compte, un code a été envoyé par e-mail.' };
+    const u = phone && await get('SELECT * FROM users WHERE phone=?', phone);
+    if (!u || !u.email) return generic; // on ne révèle jamais si le numéro existe ou non
+    const code = String(Math.floor(100000 + Math.random() * 900000));
+    await run('INSERT INTO password_resets(user_id,code,expires_at,created_at) VALUES(?,?,?,?)', u.id, code, now() + 15 * 60 * 1000, now());
+    try {
+      const r = await emailProvider.send({
+        to: u.email, subject: 'Votre code Grand Marché',
+        text: 'Bonjour ' + u.name + ',\n\nVotre code de réinitialisation est : ' + code + '\n\nIl est valable 15 minutes. Si vous n\'êtes pas à l\'origine de cette demande, ignorez cet e-mail.',
+        html: '<p>Bonjour ' + u.name + ',</p><p>Votre code de réinitialisation est :</p><p style="font-size:28px;font-weight:bold;letter-spacing:4px">' + code + '</p><p>Il est valable 15 minutes. Si vous n\'êtes pas à l\'origine de cette demande, ignorez cet e-mail.</p>'
+      });
+      if (!r.accepted) log.error('email forgot-password non envoyé:', r.failure);
+    } catch (e) { log.error('email forgot-password erreur:', e.message); }
+    return { ...generic, emailHint: maskEmail(u.email) };
   });
-  route('POST', '/api/me/password', { auth: true }, ({ user, body }) => {
-    if (!verifyPassword(String(body.oldPassword || ''), user.pass_hash)) throw new HttpError(401, 'Mot de passe actuel incorrect.');
+  route('POST', '/api/auth/reset-password', async ({ body, ip }) => {
+    const phone = normPhone(body.phone);
+    if (!authLimit('reset:' + ip) || (phone && !authLimit('resetp:' + phone))) throw new HttpError(429, 'Trop de tentatives. Réessayez dans une minute.');
+    const code = String(body.code || '').trim();
+    if (!/^\d{6}$/.test(code)) throw bad('Code invalide.');
     if (typeof body.newPassword !== 'string' || body.newPassword.length < 6) throw bad('Nouveau mot de passe : 6 caractères minimum.');
-    run('UPDATE users SET pass_hash=? WHERE id=?', hashPassword(body.newPassword), user.id);
+    const u = phone && await get('SELECT * FROM users WHERE phone=?', phone);
+    if (!u) throw new HttpError(400, 'Code incorrect ou expiré.');
+    const pr = await get(`SELECT * FROM password_resets WHERE user_id=? AND used=0 ORDER BY created_at DESC LIMIT 1`, u.id);
+    if (!pr || pr.expires_at < now()) throw new HttpError(400, 'Code incorrect ou expiré.');
+    if (pr.attempts >= 5) throw new HttpError(400, 'Trop de tentatives. Demandez un nouveau code.');
+    if (pr.code !== code) {
+      await run('UPDATE password_resets SET attempts=attempts+1 WHERE id=?', pr.id);
+      throw new HttpError(400, 'Code incorrect ou expiré.');
+    }
+    await run('UPDATE password_resets SET used=1 WHERE id=?', pr.id);
+    await run('UPDATE users SET pass_hash=? WHERE id=?', hashPassword(body.newPassword), u.id);
     return { ok: true };
   });
-  route('DELETE', '/api/me', { auth: true }, ({ user }) => {
-    const s = core.shopOf(user);
+
+  route('GET', '/api/me', { auth: true }, ({ user }) => session(user));
+  route('PUT', '/api/me', { auth: true }, async ({ user, body }) => {
+    await run('UPDATE users SET name=?, email=? WHERE id=?', body.name ? str(body.name, 2, 60, 'Nom') : user.name, body.email !== undefined ? optStr(body.email, 120) : user.email, user.id);
+    return session(await get('SELECT * FROM users WHERE id=?', user.id));
+  });
+  route('POST', '/api/me/password', { auth: true }, async ({ user, body }) => {
+    if (!verifyPassword(String(body.oldPassword || ''), user.pass_hash)) throw new HttpError(401, 'Mot de passe actuel incorrect.');
+    if (typeof body.newPassword !== 'string' || body.newPassword.length < 6) throw bad('Nouveau mot de passe : 6 caractères minimum.');
+    await run('UPDATE users SET pass_hash=? WHERE id=?', hashPassword(body.newPassword), user.id);
+    return { ok: true };
+  });
+  route('DELETE', '/api/me', { auth: true }, async ({ user }) => {
+    const s = await core.shopOf(user);
     if (s && (s.balance > 0 || s.pending > 0)) throw new HttpError(409, 'Retirez votre solde et terminez vos commandes avant de supprimer le compte.');
-    if (get(`SELECT 1 x FROM orders WHERE (buyer_id=? OR shop_id=?) AND status IN ('pending_payment','paid','processing','shipped','delivered','disputed')`, user.id, s ? s.id : -1)) throw new HttpError(409, 'Vous avez des commandes en cours.');
-    if (s) run('UPDATE products SET active=0 WHERE shop_id=?', s.id);
-    run(`UPDATE users SET name='Compte supprimé', phone=?, email=NULL, pass_hash=?, referral_code=NULL WHERE id=?`, 'del' + user.id + '-' + crypto.randomBytes(3).toString('hex'), hashPassword(crypto.randomBytes(16).toString('hex')), user.id);
-    if (s) run(`UPDATE shops SET name='Boutique supprimée', logo=NULL, description=NULL WHERE id=?`, s.id);
+    if (await get(`SELECT 1 x FROM orders WHERE (buyer_id=? OR shop_id=?) AND status IN ('pending_payment','paid','processing','shipped','delivered','disputed')`, user.id, s ? s.id : -1)) throw new HttpError(409, 'Vous avez des commandes en cours.');
+    if (s) await run('UPDATE products SET active=0 WHERE shop_id=?', s.id);
+    await run(`UPDATE users SET name='Compte supprimé', phone=?, email=NULL, pass_hash=?, referral_code=NULL WHERE id=?`, 'del' + user.id + '-' + crypto.randomBytes(3).toString('hex'), hashPassword(crypto.randomBytes(16).toString('hex')), user.id);
+    if (s) await run(`UPDATE shops SET name='Boutique supprimée', logo=NULL, description=NULL WHERE id=?`, s.id);
     return { ok: true };
   });
 
   // --- Catalogue / boutiques / produits
-  route('GET', '/api/catalog', () => ({ shops: core.catalog(), serverTime: now() }));
+  route('GET', '/api/catalog', async () => ({ shops: await core.catalog(), serverTime: now() }));
   route('POST', '/api/shops', { auth: true }, ({ user, body }) => core.createShop(user, body));
   route('PUT', '/api/shop', { auth: true }, ({ user, body }) => core.updateShop(user, body));
   route('POST', '/api/products', { auth: true }, ({ user, body }) => core.createProduct(user, body));
@@ -133,13 +183,13 @@ function createApp(cfg, injectedProvider) {
     return publicPayment(p);
   });
   route('GET', '/api/payments/:id', { auth: true }, async ({ user, params }) => {
-    let p = get('SELECT * FROM payments WHERE id=? AND user_id=?', params.id, user.id);
+    let p = await get('SELECT * FROM payments WHERE id=? AND user_id=?', params.id, user.id);
     if (!p) throw new HttpError(404, 'Paiement introuvable.');
     if (p.status === 'PENDING') {
       try {
         const r = await provider.depositStatus(p.id);
-        if (r.status === 'COMPLETED') p = core.settlePayment(p.id, 'COMPLETED', r.txn);
-        else if (r.status === 'FAILED') p = core.settlePayment(p.id, 'FAILED', null, r.failure);
+        if (r.status === 'COMPLETED') p = await core.settlePayment(p.id, 'COMPLETED', r.txn);
+        else if (r.status === 'FAILED') p = await core.settlePayment(p.id, 'FAILED', null, r.failure);
       } catch (e) { log.error('check payment', e.message); }
     }
     return publicPayment(p);
@@ -149,12 +199,12 @@ function createApp(cfg, injectedProvider) {
     const a = Buffer.from(String(params.secret)), c = Buffer.from(cfg.WEBHOOK_SECRET || '');
     if (!c.length || a.length !== c.length || !crypto.timingSafeEqual(a, c)) throw new HttpError(403, 'Refusé.');
     try {
-      if (body && body.depositId && get('SELECT 1 x FROM payments WHERE id=?', String(body.depositId))) {
+      if (body && body.depositId && await get('SELECT 1 x FROM payments WHERE id=?', String(body.depositId))) {
         const r = await provider.depositStatus(String(body.depositId));
-        if (r.status !== 'PENDING') core.settlePayment(String(body.depositId), r.status, r.txn, r.failure);
-      } else if (body && body.payoutId && get('SELECT 1 x FROM payouts WHERE id=?', String(body.payoutId))) {
+        if (r.status !== 'PENDING') await core.settlePayment(String(body.depositId), r.status, r.txn, r.failure);
+      } else if (body && body.payoutId && await get('SELECT 1 x FROM payouts WHERE id=?', String(body.payoutId))) {
         const r = await provider.payoutStatus(String(body.payoutId));
-        if (r.status !== 'PENDING') core.settlePayout(String(body.payoutId), r.status, r.failure);
+        if (r.status !== 'PENDING') await core.settlePayout(String(body.payoutId), r.status, r.failure);
       }
     } catch (e) { log.error('webhook', e.message); }
     return { ok: true };
@@ -162,7 +212,7 @@ function createApp(cfg, injectedProvider) {
 
   // --- Commandes
   route('POST', '/api/orders', { auth: true }, ({ user, body }) => core.createOrder(user, body));
-  route('GET', '/api/orders', { auth: true }, ({ user }) => ({ orders: core.listOrders(user) }));
+  route('GET', '/api/orders', { auth: true }, async ({ user }) => ({ orders: await core.listOrders(user) }));
   route('POST', '/api/orders/:id/:action', { auth: true }, ({ user, params, body }) => {
     if (params.action === 'review') return core.reviewOrder(user, params.id, body);
     return core.orderAction(user, params.id, params.action);
@@ -171,15 +221,15 @@ function createApp(cfg, injectedProvider) {
     if (!payLimit('wd:' + user.id)) throw new HttpError(429, 'Trop de demandes. Patientez un instant.');
     return core.withdraw(user, { amount: body.amount, operator: operatorOf(body.operator), phone: checkPhone(body.phone) });
   });
-  route('GET', '/api/wallet', { auth: true }, ({ user }) => {
-    const s = core.shopOf(user);
+  route('GET', '/api/wallet', { auth: true }, async ({ user }) => {
+    const s = await core.shopOf(user);
     if (!s) throw new HttpError(403, 'Pas de boutique.');
-    return { balance: s.balance, pending: s.pending, payouts: db.prepare('SELECT id, kind, amount, fee, net, status, created_at AS createdAt FROM payouts WHERE shop_id=? ORDER BY created_at DESC LIMIT 50').all(s.id) };
+    return { balance: s.balance, pending: s.pending, payouts: await all('SELECT id, kind, amount, fee, net, status, created_at AS createdAt FROM payouts WHERE shop_id=? ORDER BY created_at DESC LIMIT 50', s.id) };
   });
 
   // --- Messagerie / signalements
-  route('GET', '/api/chat', { auth: true }, ({ user }) => ({ threads: core.threads(user) }));
-  route('GET', '/api/chat/:shopId', { auth: true }, ({ user, params, query }) => ({ messages: core.thread(user, +params.shopId, query.buyerId ? +query.buyerId : undefined) }));
+  route('GET', '/api/chat', { auth: true }, async ({ user }) => ({ threads: await core.threads(user) }));
+  route('GET', '/api/chat/:shopId', { auth: true }, async ({ user, params, query }) => ({ messages: await core.thread(user, +params.shopId, query.buyerId ? +query.buyerId : undefined) }));
   route('POST', '/api/chat/:shopId', { auth: true }, ({ user, params, body }) => core.sendMessage(user, { ...body, shopId: +params.shopId }));
   route('POST', '/api/reports', { auth: true }, ({ user, body }) => core.report(user, body));
 
@@ -216,7 +266,7 @@ function createApp(cfg, injectedProvider) {
   }
   // Le code serveur vit dans le même dossier que les fichiers web (pas de sous-dossier public/) :
   // on refuse explicitement de servir le code source et la configuration au navigateur.
-  const STATIC_DENYLIST = new Set(['server.js', 'auth.js', 'core.js', 'db.js', 'providers.js', 'util.js', 'package.json', 'package-lock.json', 'render.yaml', '.env', '.env.example', '.node-version', '.gitignore', 'README.md']);
+  const STATIC_DENYLIST = new Set(['server.js', 'auth.js', 'core.js', 'db.js', 'email.js', 'providers.js', 'util.js', 'package.json', 'package-lock.json', 'render.yaml', '.env', '.env.example', '.node-version', '.gitignore', 'README.md']);
   function serveStatic(req, res, pathname) {
     let rel = decodeURIComponent(pathname); if (rel === '/') rel = '/index.html';
     const base = rel.replace(/^\/+/, '').split('/')[0];
@@ -252,7 +302,7 @@ function createApp(cfg, injectedProvider) {
       if (matched.opts.auth || matched.opts.admin) {
         const h = req.headers.authorization || '';
         const p = h.startsWith('Bearer ') ? tokens.verify(h.slice(7)) : null;
-        user = p && get('SELECT * FROM users WHERE id=?', p.uid);
+        user = p && await get('SELECT * FROM users WHERE id=?', p.uid);
         if (!user) throw new HttpError(401, 'Session expirée. Reconnectez-vous.', 'AUTH');
         if (matched.opts.admin && user.role !== 'admin') throw new HttpError(403, 'Réservé à l\'administrateur.');
         if (req.method !== 'GET' && !writeLimit('w:' + user.id)) throw new HttpError(429, 'Trop de requêtes.');
@@ -272,7 +322,7 @@ function createApp(cfg, injectedProvider) {
   let timers = [];
   function start() {
     timers.push(setInterval(() => { core.poll().catch((e) => log.error('poll', e.message)); }, 8000));
-    timers.push(setInterval(() => { try { core.housekeeping(); } catch (e) { log.error('housekeeping', e.message); } }, 60000));
+    timers.push(setInterval(() => { core.housekeeping().catch((e) => log.error('housekeeping', e.message)); }, 60000));
     timers.forEach((t) => t.unref && t.unref());
     core.kick();
   }
@@ -285,12 +335,13 @@ module.exports = { createApp, buildConfig, loadEnvFile };
 if (require.main === module) {
   loadEnvFile(path.join(__dirname, '.env'));
   const cfg = buildConfig();
-  const app = createApp(cfg);
-  app.start();
-  app.server.listen(cfg.PORT, () => {
-    console.log(`Grand Marché — serveur prêt sur http://localhost:${cfg.PORT}  (paiements : ${app.provider.name})`);
-    if (app.provider.name === 'mock') console.log('⚠ Mode simulation : AUCUN argent réel. Passez PAYMENT_PROVIDER=pawapay pour la production.');
-  });
-  const bye = () => { app.stop(); process.exit(0); };
-  process.on('SIGINT', bye); process.on('SIGTERM', bye);
+  createApp(cfg).then((app) => {
+    app.start();
+    app.server.listen(cfg.PORT, () => {
+      console.log(`Grand Marché — serveur prêt sur http://localhost:${cfg.PORT}  (paiements : ${app.provider.name})`);
+      if (app.provider.name === 'mock') console.log('⚠ Mode simulation : AUCUN argent réel. Passez PAYMENT_PROVIDER=pawapay pour la production.');
+    });
+    const bye = () => { app.stop(); process.exit(0); };
+    process.on('SIGINT', bye); process.on('SIGTERM', bye);
+  }).catch((e) => { console.error('Échec du démarrage :', e); process.exit(1); });
 }

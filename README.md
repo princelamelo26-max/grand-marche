@@ -59,6 +59,50 @@ ligne :
 
 Je peux m'occuper du déploiement avec toi quand tu es prêt.
 
+## 5. Rendre les données persistantes (Turso — gratuit, sans carte)
+
+Par défaut, les données (comptes, boutiques, commandes) vivent dans un fichier sur le
+disque du serveur. Sur un hébergeur gratuit comme Render, ce disque est effacé à
+chaque redémarrage du service. Pour que les données survivent, branchez une base
+Turso :
+
+1. Créez un compte gratuit sur [turso.tech](https://turso.tech) (aucune carte requise).
+2. Créez une base de données (depuis leur tableau de bord web, ou leur CLI).
+3. Récupérez son **URL** (commence par `libsql://...`) et un **jeton d'accès** (auth token).
+4. Dans Render (ou votre `.env` en local), renseignez :
+   ```
+   TURSO_DATABASE_URL=libsql://votre-base.turso.io
+   TURSO_AUTH_TOKEN=votre_jeton
+   ```
+5. Redéployez. Le serveur détecte automatiquement ces variables et bascule dessus —
+   rien d'autre à changer. Sans elles, il continue de fonctionner comme avant (fichier
+   local, non persistant), donc aucun risque à déployer ce changement avant d'avoir
+   configuré Turso.
+
+## 6. Activer les vrais e-mails (mot de passe oublié)
+
+Par défaut, les e-mails (code de réinitialisation du mot de passe) ne sont pas
+réellement envoyés (mode simulation). Pour les activer :
+
+1. Créez un compte gratuit sur [Brevo](https://www.brevo.com) (300 e-mails/jour
+   gratuits, aucune carte requise).
+2. Dans leur tableau de bord, allez dans **Paramètres → Expéditeurs**, ajoutez et
+   vérifiez une adresse e-mail (n'importe laquelle, pas besoin de nom de domaine).
+3. Créez une clé API (**Paramètres → Clés API**).
+4. Renseignez dans Render :
+   ```
+   EMAIL_PROVIDER=brevo
+   BREVO_API_KEY=votre_clé
+   BREVO_SENDER_EMAIL=l_adresse_que_vous_avez_vérifiée@exemple.com
+   ```
+
+⚠️ **Note honnête sur la connexion à Turso** : cette partie n'a pas pu être testée en
+conditions réelles avant livraison (environnement de développement sans accès
+Internet pour installer le logiciel nécessaire). Le reste de l'application a été
+testé intensément ; cette seule brique (la connexion à Turso) mérite d'être
+vérifiée après la première connexion — testez simplement l'application normalement
+une fois les deux variables renseignées, et signalez tout souci.
+
 ## Comment l'argent circule
 
 - **Boost d'un produit** (1 500 FCFA / 7 jours) et **certification boutique**

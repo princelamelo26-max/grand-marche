@@ -8,6 +8,9 @@
     "start": "node --disable-warning=ExperimentalWarning server.js",
     "test": "node --disable-warning=ExperimentalWarning test/run.js"
   },
+  "dependencies": {
+    "@libsql/client": "^0.18.0"
+  },
   "license": "UNLICENSED",
   "private": true
 }

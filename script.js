@@ -73,6 +73,7 @@ var sellerMode = 'register';
 var sellerOrdersFilter = 'active';
 var pendingVerification = null;
 var pendingResetPhone = null;
+var pendingResetCode = null;
 var currentShopIndex = 0;
 var viewingMyShop = false;
 var pendingLogoData = null;
@@ -1357,7 +1358,12 @@ function getCropFrameSize(ratio) {
     var maxW = Math.min(280, Math.floor(window.innerWidth * 0.75));
     var maxH = Math.min(280, Math.floor(window.innerHeight * 0.5));
     var base = Math.min(maxW, maxH);
-    if (ratio === 'rect') return { w: base, h: Math.round(base * 0.62) };
+    if (ratio === 'rect') {
+        // Le cadre rectangulaire s'adapte au sens réel de la photo (portrait ou paysage),
+        // pour qu'une image prise en hauteur ne soit plus coupée en haut et en bas.
+        var portrait = cropImg && cropImg.width && cropImg.height && cropImg.height > cropImg.width;
+        return portrait ? { w: Math.round(base * 0.62), h: base } : { w: base, h: Math.round(base * 0.62) };
+    }
     return { w: base, h: base };
 }
 function openCropScreen(ratio, imgSrc) {
@@ -1379,7 +1385,7 @@ function openCropScreen(ratio, imgSrc) {
     showScreen('crop-screen');
     cropImg.onload = function() {
         if (imgEl) imgEl.src = imgSrc;
-        requestAnimationFrame(function() { layoutCropImage(); setupCropDrag(); });
+        requestAnimationFrame(function() { setCropRatioFrame(cropRatio); layoutCropImage(); setupCropDrag(); });
     };
     cropImg.onerror = function() { toast('Impossible de charger l\'image.', 'error'); cancelCrop(); };
     cropImg.src = imgSrc;
@@ -2378,9 +2384,25 @@ function toggleRole() {
 function logout() {
     gmConfirm('Se déconnecter ?', 'Déconnexion', { danger: true }).then(function(ok) {
         if (!ok) return;
-        GM.logout(); cart = []; isSeller = false; updateCartUI(); closeSettings();
+        GM.logout();
+        _resetLocalIdentity();
+        updateCartUI(); closeSettings();
         _stateDirty = true; showScreen('role-screen');
     });
+}
+/** Efface tout l'état propre au compte connecté, pour qu'une reconnexion ou une nouvelle
+ *  inscription reparte de zéro, sans aucune trace du compte précédent sur cet appareil. */
+function _resetLocalIdentity() {
+    userName = ''; userPhone = ''; userEmail = ''; userPass = ''; userId = null; userCity = '';
+    myShop = null; isSeller = false; cart = [];
+    hasBuyerAccount = false; buyerAvatar = null;
+    buyerOrders = []; sellerOrders = [];
+    followedShops = []; conversations = []; favoriteProducts = [];
+    notifications = []; searchHistory = []; recentlyViewed = [];
+    buyerReferrals = [];
+    hasAcceptedTerms = false;
+    buyerWallet = { balance: 0, escrow: 0, totalSpent: 0, totalRefunded: 0, transactions: [] };
+    currentChatShopId = null; currentChatBuyerId = null;
 }
 function deleteAccount() {
     gmConfirm('Supprimer votre compte ? Cette action est irréversible.', 'Attention', { danger: true, confirmText: 'Supprimer' })
@@ -2398,14 +2420,7 @@ function deleteAccount() {
     .then(function (done) {
         if (!done) return;
         GM.logout();
-        myShop = null; isSeller = false; cart = [];
-        hasBuyerAccount = false; buyerAvatar = null;
-        buyerOrders = []; sellerOrders = [];
-        followedShops = []; conversations = []; favoriteProducts = [];
-        notifications = []; searchHistory = []; recentlyViewed = [];
-        buyerReferrals = [];
-        hasAcceptedTerms = false;
-        buyerWallet = { balance: 0, escrow: 0, totalSpent: 0, totalRefunded: 0, transactions: [] };
+        _resetLocalIdentity();
         try { localStorage.removeItem(STORAGE_KEY); } catch (e) {}
         updateCartUI(); toast('Compte supprimé.', 'info');
         closeSettings(); showScreen('role-screen');
@@ -3620,47 +3635,52 @@ function moveToNext(inp, i) { if (inp.value.length === 1) { var ins = document.q
 function moveToPrev(e, inp, i) { if (e.key === 'Backspace' && inp.value === '') { var ins = document.querySelectorAll('#code-inputs input'); if (i > 0) ins[i-1].focus(); } }
 function clearCodeInputs() { var ins = document.querySelectorAll('#code-inputs input'); for (var i=0;i<ins.length;i++) ins[i].value=''; }
 function getEnteredCode() { var ins = document.querySelectorAll('#code-inputs input'); var c=''; for (var i=0;i<ins.length;i++) c+=ins[i].value; return c; }
+/* ===== Mot de passe oublié : un vrai code à 6 chiffres envoyé par e-mail ===== */
+function sendResetCode() {
+    var p = document.getElementById('forgot-phone').value.trim();
+    if (p.replace(/[^0-9]/g, '').length < 8) { toast('Numéro invalide.', 'error'); return; }
+    var cp = p.replace(/\s/g, ''); if (cp.indexOf('0') !== 0 && cp.length === 8) cp = '0' + cp;
+    showLoading('Envoi du code...');
+    GM.forgotPassword(cp).then(function (r) {
+        hideLoading();
+        pendingResetPhone = cp;
+        var hintEl = document.getElementById('verify-phone-display');
+        if (hintEl) hintEl.textContent = r.emailHint ? ('Code envoyé à ' + r.emailHint) : 'Code envoyé par e-mail';
+        clearCodeInputs();
+        showScreen('verify-code-screen');
+    }).catch(function (e) { hideLoading(); toast(e.message, 'error', 5000); });
+}
+function resendCode() {
+    if (!pendingResetPhone) return;
+    clearCodeInputs();
+    GM.forgotPassword(pendingResetPhone).then(function () { toast('Nouveau code envoyé.', 'success'); })
+        .catch(function (e) { toast(e.message, 'error', 5000); });
+}
 function verifyCode() {
     var c = getEnteredCode();
     if (c.length !== 6) { toast('6 chiffres requis.', 'error'); return; }
-    if (!pendingVerification) { showScreen('seller-register-screen'); return; }
-    if (c === pendingVerification.code) {
-        if (pendingVerification.action === 'login') {
-            isSeller = true; applyShopToDashboard();
-            pendingVerification = null; _stateDirty = true;
-            toast('Connexion réussie.', 'success');
-            showScreen('seller-dashboard-screen');
-        } else {
-            pendingResetPhone = pendingVerification.phone;
-            pendingVerification = null;
-            showScreen('reset-password-screen');
-        }
-    } else {
-        pendingVerification.attempts++;
-        if (pendingVerification.attempts >= 3) {
-            toast('3 tentatives échouées.', 'error');
-            pendingVerification = null;
-            showScreen('seller-register-screen'); switchSellerMode('login');
-        } else { clearCodeInputs(); toast('Code incorrect (' + (3 - pendingVerification.attempts) + ' essai(s))', 'warn'); }
-    }
+    if (!pendingResetPhone) { showScreen('seller-register-screen'); switchSellerMode('login'); return; }
+    // La vérification réelle du code se fait côté serveur, en même temps que l'enregistrement
+    // du nouveau mot de passe (une seule opération atomique) : on garde juste le code ici.
+    pendingResetCode = c;
+    showScreen('reset-password-screen');
 }
-function resendCode() {
-    if (!pendingVerification) return;
-    var nc = generateCode(); pendingVerification.code = nc;
-    clearCodeInputs(); sendSmsCode(pendingVerification.phone, nc, pendingVerification.action);
-}
-function cancelVerification() { pendingVerification = null; showScreen('seller-register-screen'); switchSellerMode('login'); }
-function sendResetCode() {
-    toast('Pour réinitialiser votre mot de passe, contactez le support : nous vérifions votre identité puis vous aidons.', 'info', 6000);
-    openWhatsAppSupport();
-}
+function cancelVerification() { pendingResetPhone = null; pendingResetCode = null; showScreen('seller-register-screen'); switchSellerMode('login'); }
 function resetPassword() {
     var p = document.getElementById('new-password').value, c = document.getElementById('new-password-confirm').value;
     if (p.length < 6) { toast('6 caractères minimum.', 'error'); return; }
     if (p !== c) { toast('Les mots de passe diffèrent.', 'error'); return; }
-    myShop.pass = p; pendingResetPhone = null; _stateDirty = true;
-    toast('Mot de passe réinitialisé.', 'success');
-    showScreen('seller-register-screen'); switchSellerMode('login');
+    if (!pendingResetPhone || !pendingResetCode) { showScreen('forgot-password-screen'); return; }
+    showLoading('Réinitialisation...');
+    GM.resetPassword(pendingResetPhone, pendingResetCode, p).then(function () {
+        hideLoading();
+        pendingResetPhone = null; pendingResetCode = null;
+        toast('Mot de passe réinitialisé. Connectez-vous.', 'success', 5000);
+        showScreen('seller-register-screen'); switchSellerMode('login');
+    }).catch(function (e) {
+        hideLoading(); toast(e.message, 'error', 5000);
+        showScreen('verify-code-screen'); clearCodeInputs();
+    });
 }
 
 /* =========================================================
@@ -4163,7 +4183,7 @@ function renderProductMedia() {
         probe.onload = function () {
             if (!probe.width || !probe.height) return;
             var ratio = probe.width / probe.height;
-            ratio = Math.max(0.65, Math.min(1.7, ratio)); // borne raisonnable (portrait <-> rectangulaire)
+            ratio = Math.max(0.55, Math.min(1.75, ratio)); // couvre nos cadrages carré, rectangulaire paysage ET portrait, sans recouper
             main.style.aspectRatio = ratio.toFixed(3);
         };
         probe.src = img;

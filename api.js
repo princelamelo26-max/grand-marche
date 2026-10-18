@@ -117,6 +117,8 @@ var GM = (function () {
     function register(o) { return req('POST', '/api/auth/register', o).then(function (s) { setToken(s.token); return s; }); }
     function login(phone, password) { return req('POST', '/api/auth/login', { phone: phone, password: password }).then(function (s) { setToken(s.token); return s; }); }
     function logout() { setToken(null); }
+    function forgotPassword(phone) { return req('POST', '/api/auth/forgot-password', { phone: phone }); }
+    function resetPassword(phone, code, newPassword) { return req('POST', '/api/auth/reset-password', { phone: phone, code: code, newPassword: newPassword }); }
     function loggedIn() { return !!token(); }
 
     /** Reconstruit myShop à partir du compte serveur (connexion sur un nouvel appareil). */
@@ -311,6 +313,7 @@ var GM = (function () {
     }
 
     return { init: init, req: req, token: token, loggedIn: loggedIn, register: register, login: login, logout: logout,
+        forgotPassword: forgotPassword, resetPassword: resetPassword,
         adoptShop: adoptShop, createShop: createShop, loadCatalog: loadCatalog, scheduleSync: scheduleSync, syncNow: syncNow,
         removeProduct: removeProduct, pay: pay, shrinkImage: shrinkImage, config: function () { return cfg; }, online: function () { return online; },
         syncOrders: syncOrders, createOrder: createOrder, orderAction: orderAction,
